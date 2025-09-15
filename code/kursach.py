@@ -47,10 +47,7 @@ def get_cp_air(T1, T2):
     
     return cp_avg
 
-def calculate_compressor_temperature_safe(TH, pik, effK, R=287.0, max_iter=100, tol=1e-16):
-    """
-    Безопасная версия с дополнительными проверками
-    """
+def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=100, tol=1e-16):
     if TH <= 0 or pik <= 0 or effK <= 0:
         raise ValueError("Параметры должны быть положительными")
     
