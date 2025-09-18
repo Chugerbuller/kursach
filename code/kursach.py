@@ -46,6 +46,57 @@ def get_cp_air(T1, T2):
     cp_avg = cp_integral / (T2 - T1)
     
     return cp_avg
+def calculate_combustion_properties(C, H, L0, Hu, effG, TK, TG, cpCO2, cpH2O, cpN2, cpO2):
+    """
+    Вычисляет свойства продуктов сгорания топлива
+    
+    Параметры:
+    C - доля углерода в топливе
+    H - доля водорода в топливе
+    L0 - теоретическое количество воздуха
+    Hu - низшая теплота сгорания топлива, Дж/кг
+    effG - эффективность сгорания топлива
+    TK - начальная температура, K
+    TG - температура горения, K
+    cpCO2, cpH2O, cpN2, cpO2 - удельные изобарные теплоемкости компонентов
+    
+    Возвращает:
+    tuple: (k, alpha, gCO2, gH2O, gN2, gO2, R, cp, cv, iter_count)
+    """
+    
+    # Вычисляем удельные газовые постоянные продуктов сгорания:
+    RCO2 = 8314.2 / (12 + 16 * 2)  # для углекислого газа
+    RH2O = 8314.2 / (2 + 16)       # для водяного пара
+    RN2 = 8314.2 / 28              # для азота
+    RO2 = 8314.2 / 32              # для кислорода
+    
+    # Задаем начальные значения
+    k = 0
+    alpha = 1
+    kOld = 1.4
+    iter_count = 0
+    
+    # Начинаем итерационный процесс
+    while abs(k - kOld) > 1e-16 and iter_count < 100:
+        # Вычисляем массовые доли компонентов
+        gCO2 = 11/3 * C / (1 + alpha * L0)
+        gH2O = 9 * H / (1 + alpha * L0)
+        gN2 = 0.77 * L0 * alpha / (1 + L0 * alpha)
+        gO2 = 0.23 * (alpha - 1) * L0 / (1 + L0 * alpha)
+        
+        # Вычисляем теплоемкости и газовую постоянную смеси
+        cp = cpCO2 * gCO2 + cpH2O * gH2O + cpN2 * gN2 + cpO2 * gO2
+        R = RCO2 * gCO2 + RH2O * gH2O + RN2 * gN2 + RO2 * gO2
+        cv = cp - R
+        
+        kOld = k
+        k = cp / cv
+        
+        # Вычисляем коэффициент избытка воздуха
+        alpha = 1 / L0 * (Hu * effG / cp / (TG - TK) - 1)
+        iter_count += 1
+    
+    return k, alpha, gCO2, gH2O, gN2, gO2, R, cp, cv, iter_count
 
 def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=100, tol=1e-16):
     if TH <= 0 or pik <= 0 or effK <= 0:
