@@ -1,8 +1,51 @@
 import kursach as kurs
+import matplotlib.pyplot as plt
+
+
+
+class Table_temperature:
+    def __init__(self, t, m):
+        super().__init__(t, m)
+        self.t = t
+        self.m = m
+
+
+class Table_m:
+    def __init__(self, m, pi_k_full):
+        super().__init__(m, pi_k_full)
+        self.m = m
+        self.pi_k_full = pi_k_full
+
+
+class Table_pi_k_full:
+    def __init__(
+        self,
+        pi_k_full,
+        t_gas_full,
+        alpha,
+        x_opt,
+        k,
+        k_gas,
+        p_spec,
+        c_spec,
+        l_free_energy,
+    ):
+        super().__init__(
+            pi_k_full, t_gas_full, alpha, x_opt, k, k_gas, p_spec, c_spec, l_free_energy
+        )
+        self.pi_k_full = pi_k_full
+        self.t_gas_full = t_gas_full
+        self.alpha = alpha
+        self.x_opt = x_opt
+        self.k = k
+        self.k_gas = k_gas
+        self.p_spec = p_spec
+        self.c_spec = c_spec
+        self.l_free_energy = l_free_energy
 
 
 def calc_opt_params():
-
+    res = {}
     engine = {
         "P": 264.447,
         "Pik_full": 34.5,
@@ -41,8 +84,12 @@ def calc_opt_params():
         Pik_full.append(step * engine["Pik_full"])
         step += 0.05
     for T_gas_full_i in T_gas_full:
+        t_array = []
         for m_i in m:
+            m_array = []
             for Pik_full_i in Pik_full:
+                pi_array = []
+                k = kurs.get_cp_air(T_gas_full_i, 288)
                 T_k = kurs.calculate_compressor_temperature(
                     T_gas_full_i, Pik_full_i, coef["effk_comp_full"]
                 )["TK"]
@@ -91,7 +138,7 @@ def calc_opt_params():
                         coef["sigma_1"],
                         coef["phi_c1"],
                     ),
-                    kurs.get_cp_air(T_gas_full_i, 288),
+                    k,
                     288,
                     1.4,
                     q_T,
@@ -100,3 +147,31 @@ def calc_opt_params():
                         Pik_full_i, coef["sigma_intake"], 1.4, coef["effk_comp_full"]
                     ),
                 )
+                p_spec = kurs.calculate_P_spec(
+                    q_T,
+                    v_take,
+                    m_i,
+                    coef["phi_c1"],
+                    coef["phi_c2"],
+                    x_opt,
+                    L_free,
+                    coef["effk_lpt_full"],
+                    coef["effk_fan_full"],
+                )
+                c_spec = kurs.calculate_c_spec(q_T, coef["ksi_take"], m_i, p_spec)
+                pi_array.append(
+                    Table_pi_k_full(
+                        Pik_full_i,
+                        T_gas_full_i,
+                        combustion_props["alpha"],
+                        x_opt,
+                        k,
+                        k_gas,
+                        p_spec,
+                        c_spec,
+                        L_free,
+                    )
+                )
+            m_array.append(Table_m(m_i,pi_array))
+        t_array.append(Table_temperature(T_gas_full_i,m_array))
+        

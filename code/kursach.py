@@ -596,11 +596,11 @@ def optimal_parameter(phi_c1, phi_c2, q_T, v_take, m, eta_LPT_star, eta_F_star):
     return x_opt
 
 
-def calculate_P_yA(
+def calculate_P_spec(
     q_T, v_take, m, phi_c1, phi_c2, x_opt, L_CB, eta_LPT_star, eta_F_star
 ):
     """
-    Вычисляет параметр P_yA по формуле:
+    Вычисляет параметр P_spec по формуле:
 
     P_yA = [(1 + q_T - v_take)/(m + 1)] * φ_c1 * √[2(1 - x_opt) * L_CB] +
             [m/(m + 1)] * φ_c2 * √[2(1 + q_T - v_take) * x_opt * L_CB * η*_THA * η*_B / m]
@@ -699,6 +699,24 @@ def calculate_full_free_energy(
 
     return L_CB
 
+def calculate_c_spec(q_T, xi_intake, m, P_spec):
+    """
+    Вычисляет удельный расход c_spec по формуле:
+    
+    c_spec = [3600 * q_T * (1 - ξ_orb)] / [(1 + m) * P_ȳ]
+    
+    Parameters:
+    q_T (float): Параметр q_T
+    xi_intake (float): Коэффициент потерь ξ_orb
+    m (float): Параметр m
+    P_spec (float): Параметр P_ȳ
+    
+    Returns:
+    float: Удельный расход c_spec
+    """
+    c_c_spec = (3600 * q_T * (1 - xi_intake)) / ((1 + m) * P_spec)
+    
+    return c_c_spec
 
 def calculate_phi_co(eta_T_star, pi_T_star, k_prime):
     """
@@ -738,25 +756,28 @@ def calculate_pi_c_star(k_prime):
 
     return pi_c_star
 
+
 def calculate_pi_T_star(sigma_BX, pi_K_star, sigma_KC, sigma_1, pi_c_star):
     """
     Вычисляет степень понижения давления π_T* по формуле:
-    
+
     π_T* = (σ_BX * π_K* * σ_KC * σ_1) / π_c*
-    
+
     Parameters:
     sigma_BX (float): Коэффициент σ_BX
     pi_K_star (float): Степень повышения давления π_K*
     sigma_KC (float): Коэффициент σ_KC
     sigma_1 (float): Коэффициент σ_1
     pi_c_star (float): Критическая степень повышения давления π_c*
-    
+
     Returns:
     float: Степень понижения давления π_T*
     """
     pi_T_star = (sigma_BX * pi_K_star * sigma_KC * sigma_1) / pi_c_star
-    
+
     return pi_T_star
+
+
 def compression_efficiency(pi_K_star, sigma_BX, k, eta_K_star):
     """
     Вычисляет КПД сжатия по формуле:
