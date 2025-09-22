@@ -49,6 +49,7 @@ def calc_opt_params():
                 combustion_props = kurs.calculate_combustion_properties(
                     0.86, 0.14, T_k, T_gas_full_i, coef["effk_gas"]
                 )
+                k_gas = combustion_props["k"]
                 q_T = 1 / (combustion_props["alpha"] * combustion_props["L0"])
                 v_take = coef["ksi_take"] - coef["g_air_back"]
                 x_opt = kurs.optimal_parameter(
@@ -60,4 +61,42 @@ def calc_opt_params():
                     coef["effk_lpt_full"],
                     coef["effk_fan_full"],
                 )
-                L_free = kurs.calculate_full_free_energy(kurs.calculate_phi_co((coef["effk_hpt_full"] * coef["effk_lpt_full"])))
+                phi_c_star = kurs.calculate_pi_c_star(k_gas)
+                phi_t_star = kurs.calculate_pi_T_star(
+                    coef["sigma_intake"],
+                    Pik_full_i,
+                    coef["sigma_cc"],
+                    coef["sigma_1"],
+                    phi_c_star,
+                )
+                L_free = kurs.calculate_full_free_energy(
+                    kurs.calculate_phi_co(
+                        (coef["effk_hpt_full"] * coef["effk_lpt_full"]),
+                        phi_t_star,
+                        k_gas,
+                    ),
+                    combustion_props["cp_mix"],
+                    T_gas_full_i,
+                    Pik_full_i,
+                    coef["sigma_cc"],
+                    coef["sigma_intake"],
+                    coef["sigma_1"],
+                    k_gas,
+                    kurs.expansion_efficiency(
+                        Pik_full_i,
+                        coef["sigma_intake"],
+                        coef["sigma_cc"],
+                        k_gas,
+                        coef["effk_hpt_full"] * coef["effk_lpt_full"],
+                        coef["sigma_1"],
+                        coef["phi_c1"],
+                    ),
+                    kurs.get_cp_air(T_gas_full_i, 288),
+                    288,
+                    1.4,
+                    q_T,
+                    v_take,
+                    kurs.compressor_efficiency(
+                        Pik_full_i, coef["sigma_intake"], 1.4, coef["effk_comp_full"]
+                    ),
+                )

@@ -594,13 +594,17 @@ def optimal_parameter(phi_c1, phi_c2, q_T, v_take, m, eta_LPT_star, eta_F_star):
     denominator = phi_c2**2 * m * eta_LPT_star * eta_F_star
     x_opt = 1 / (1 + numerator / denominator)
     return x_opt
-def calculate_P_yA(q_T, v_take, m, phi_c1, phi_c2, x_opt, L_CB, eta_LPT_star, eta_F_star):
+
+
+def calculate_P_yA(
+    q_T, v_take, m, phi_c1, phi_c2, x_opt, L_CB, eta_LPT_star, eta_F_star
+):
     """
     Вычисляет параметр P_yA по формуле:
-    
+
     P_yA = [(1 + q_T - v_take)/(m + 1)] * φ_c1 * √[2(1 - x_opt) * L_CB] +
             [m/(m + 1)] * φ_c2 * √[2(1 + q_T - v_take) * x_opt * L_CB * η*_THA * η*_B / m]
-    
+
     Parameters:
     q_T (float): Параметр q_T
     v_take (float): Параметр v_take
@@ -611,27 +615,51 @@ def calculate_P_yA(q_T, v_take, m, phi_c1, phi_c2, x_opt, L_CB, eta_LPT_star, et
     L_CB (float): Параметр L_CB
     eta_LPT_star (float): КПД η*_THA
     eta_F_star (float): КПД η*_B
-    
+
     Returns:
     float: Параметр P_yA
     """
     import math
-    
+
     # Первое слагаемое
     term1 = ((1 + q_T - v_take) / (m + 1)) * phi_c1 * math.sqrt(2 * (1 - x_opt) * L_CB)
-    
+
     # Второе слагаемое
-    term2 = (m / (m + 1)) * phi_c2 * math.sqrt(2 * (1 + q_T - v_take) * x_opt * L_CB * eta_LPT_star * eta_F_star / m)
-    
+    term2 = (
+        (m / (m + 1))
+        * phi_c2
+        * math.sqrt(
+            2 * (1 + q_T - v_take) * x_opt * L_CB * eta_LPT_star * eta_F_star / m
+        )
+    )
+
     P_yA = term1 + term2
     return P_yA
-def calculate_full_free_energy(phi_c0, c_P_T_bar, T_G_star, pi_K_star, sigma_KC, sigma_BX, sigma_1, k_prime, eta_p, c_P_bar, T_H, k, q_T, v_take, eta_c):
+
+
+def calculate_full_free_energy(
+    phi_c0,
+    c_P_T_bar,
+    T_G_star,
+    pi_K_star,
+    sigma_KC,
+    sigma_BX,
+    sigma_1,
+    k_prime,
+    eta_p,
+    c_P_bar,
+    T_H,
+    k,
+    q_T,
+    v_take,
+    eta_c,
+):
     """
     Вычисляет параметр L_CB по формуле:
-    
-    L_CB = (1/φ_c0²) * [ c_P^T* T_F* (1 - (π_K* σ_KC σ_BX σ_1)^((1-k')/k')) η_p - 
+
+    L_CB = (1/φ_c0²) * [ c_P^T* T_F* (1 - (π_K* σ_KC σ_BX σ_1)^((1-k')/k')) η_p -
            (c_P T_H ((π_K* σ_BX)^((k-1)/k) - 1)) / ((1 + q_T - ν_or6) η_c) ]
-    
+
     Parameters:
     phi_c0 (float): Коэффициент скорости φ_c0
     c_P_T_bar (float): Средняя удельная теплоемкость c_P^T*
@@ -648,41 +676,181 @@ def calculate_full_free_energy(phi_c0, c_P_T_bar, T_G_star, pi_K_star, sigma_KC,
     q_T (float): Параметр q_T
     v_take (float): Параметр ν_or6
     eta_c (float): КПД η_c
-    
+
     Returns:
     float: Параметр L_CB
     """
-    
+
     # Первое слагаемое в скобках
-    term1 = c_P_T_bar * T_G_star * (1 - (pi_K_star * sigma_KC * sigma_BX * sigma_1) ** ((1 - k_prime) / k_prime)) * eta_p
-    
+    term1 = (
+        c_P_T_bar
+        * T_G_star
+        * (1 - (pi_K_star * sigma_KC * sigma_BX * sigma_1) ** ((1 - k_prime) / k_prime))
+        * eta_p
+    )
+
     # Второе слагаемое в скобках
-    term2 = (c_P_bar * T_H * ((pi_K_star * sigma_BX) ** ((k - 1) / k) - 1)) / ((1 + q_T - v_take) * eta_c)
-    
+    term2 = (c_P_bar * T_H * ((pi_K_star * sigma_BX) ** ((k - 1) / k) - 1)) / (
+        (1 + q_T - v_take) * eta_c
+    )
+
     # Вычисляем L_CB
     L_CB = (1 / phi_c0**2) * (term1 - term2)
-    
+
     return L_CB
+
+
 def calculate_phi_co(eta_T_star, pi_T_star, k_prime):
     """
     Вычисляет коэффициент скорости φ_co по формуле:
-    
+
     φ_co = 1 / [(1 - η*_T) * π*_T^((k'-1)/k') + η*_T]
-    
+
     Parameters:
     eta_T_star (float): КПД η*_T
     pi_T_star (float): Степень понижения давления π*_T
     k_prime (float): Показатель адиабаты k'
-    
+
     Returns:
     float: Коэффициент скорости φ_co
     """
-    
+
     exponent = (k_prime - 1) / k_prime
-    denominator = (1 - eta_T_star) * (pi_T_star ** exponent) + eta_T_star
+    denominator = (1 - eta_T_star) * (pi_T_star**exponent) + eta_T_star
     phi_co = 1 / denominator
-    
+
     return phi_co
+
+
+def calculate_pi_c_star(k_prime):
+    """
+    Вычисляет критическую степень повышения давления π_c* = π_cr по формуле:
+
+    π_c* = [(k' + 1)/2]^(k'/(k'-1))
+
+    Parameters:
+    k_prime (float): Показатель адиабаты k'
+
+    Returns:
+    float: Критическая степень повышения давления π_c*
+    """
+    pi_c_star = ((k_prime + 1) / 2) ** (k_prime / (k_prime - 1))
+
+    return pi_c_star
+
+def calculate_pi_T_star(sigma_BX, pi_K_star, sigma_KC, sigma_1, pi_c_star):
+    """
+    Вычисляет степень понижения давления π_T* по формуле:
+    
+    π_T* = (σ_BX * π_K* * σ_KC * σ_1) / π_c*
+    
+    Parameters:
+    sigma_BX (float): Коэффициент σ_BX
+    pi_K_star (float): Степень повышения давления π_K*
+    sigma_KC (float): Коэффициент σ_KC
+    sigma_1 (float): Коэффициент σ_1
+    pi_c_star (float): Критическая степень повышения давления π_c*
+    
+    Returns:
+    float: Степень понижения давления π_T*
+    """
+    pi_T_star = (sigma_BX * pi_K_star * sigma_KC * sigma_1) / pi_c_star
+    
+    return pi_T_star
+def compression_efficiency(pi_K_star, sigma_BX, k, eta_K_star):
+    """
+    Вычисляет КПД сжатия по формуле:
+
+    η_c = [(σ_BX * π*_K)^((k-1)/k) - 1] /
+          [σ_BX^((k-1)/k) * (π*_K^((k-1)/k) - 1) * (1/η*_K) + (σ_BX^((k-1)/k) - 1)]
+
+    Parameters:
+    pi_K_star (float): Степень повышения давления в компрессоре
+    sigma_BX (float): Коэффициент потерь на входе
+    k (float): Показатель адиабаты (отношение теплоемкостей cp/cv)
+    eta_K_star (float): Изоэнтропический КПД компрессора
+
+    Returns:
+    float: КПД компрессора η_c
+    """
+    # Проверка входных параметров
+    if pi_K_star <= 0:
+        raise ValueError("Степень повышения давления должна быть > 0")
+    if sigma_BX <= 0:
+        raise ValueError("Коэффициент потерь на входе должен быть > 0")
+    if k <= 1:
+        raise ValueError("Показатель адиабаты должен быть > 1")
+    if eta_K_star <= 0 or eta_K_star > 1:
+        raise ValueError("Изоэнтропический КПД должен быть в диапазоне (0, 1]")
+
+    # Вычисляем степени для упрощения формулы
+    exponent = (k - 1) / k
+    sigma_exp = sigma_BX**exponent
+    pi_exp = pi_K_star**exponent
+
+    # Числитель
+    numerator = (sigma_BX * pi_K_star) ** exponent - 1
+
+    # Знаменатель
+    denominator = (sigma_exp * (pi_exp - 1) / eta_K_star) + (sigma_exp - 1)
+
+    # КПД сжатия
+    eta_c = numerator / denominator
+
+    return eta_c
+
+
+def expansion_efficiency(
+    pi_K_star, sigma_BX, sigma_KC, k_prime, eta_T_star, sigma_1, phi_c1
+):
+    """
+    Вычисляет КПД расширения по формуле:
+
+    η_p = [(1-π*_T)^((1-k')/k') * η*_T + (1-(1-π*_T)^((1-k')/k')) * η*_T) * (1-π*_C)^((1-k')/k') * phi_c1^2]/
+          [1-(π*_T * π*_C)^((1-k')/k')]
+
+    Parameters:
+    pi_K_star (float): Степень повышения давления в компрессоре
+    sigma_BX (float): Коэффициент потерь на входе
+    sigma_KC (float): Коэффициент потерь в камере сгорания
+    k_prime (float): Показатель адиабаты k'
+    eta_T_star (float): Изоэнтропический КПД турбины
+
+    Returns:
+    float: КПД расширения η_p
+    """
+    # Проверка входных параметров
+    if pi_K_star <= 0:
+        raise ValueError("Степень повышения давления должна быть > 0")
+    if sigma_BX <= 0:
+        raise ValueError("Коэффициент потерь на входе должен быть > 0")
+    if sigma_KC <= 0:
+        raise ValueError("Коэффициент потерь в камере сгорания должен быть > 0")
+    if k_prime <= 1:
+        raise ValueError("Показатель адиабаты должен быть > 1")
+    if eta_T_star <= 0 or eta_T_star > 1:
+        raise ValueError("Изоэнтропический КПД должен быть в диапазоне (0, 1]")
+
+    # Вычисляем степени для упрощения формулы
+    exponent = (1 - k_prime) / k_prime
+    pi_T_exp = pi_T_star**exponent
+    pi_C_exp = pi_C_star**exponent
+    pi_exp = (pi_T_star * pi_C_exp) ** exponent
+
+    # Вычисляем степень расширения в сопле. Режим расчётный
+    pi_C_star = ((k_prime + 1) / 2) ** exponent
+
+    # Вычисляем степень понижения давления в турбине
+    pi_T_star = sigma_BX * pi_K_star * sigma_KC * sigma_1 / pi_C_star
+
+    numerator = (1 - pi_T_exp) * eta_T_star + (1 - (1 - pi_T_exp) * eta_T_star) * (
+        1 - pi_C_exp
+    ) * phi_c1**2
+    denominator = 1 - pi_exp
+    eta_p = numerator / denominator
+    return eta_p
+
+
 # Пример использования функции:
 # z, y, iterations = calculate_turbine_stages(LTBD, effTBD, DCPTBD, DCPG, uK1, DBKBD)
 # print(f"Оптимальное число ступеней: {z}, параметр Парсонса: {y:.3f}, итераций: {iterations}")
