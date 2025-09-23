@@ -2,17 +2,16 @@ import kursach as kurs
 import matplotlib.pyplot as plt
 
 
-
 class Table_temperature:
     def __init__(self, t, m):
-        super().__init__(t, m)
+        super().__init__()
         self.t = t
         self.m = m
 
 
 class Table_m:
     def __init__(self, m, pi_k_full):
-        super().__init__(m, pi_k_full)
+        super().__init__()
         self.m = m
         self.pi_k_full = pi_k_full
 
@@ -30,9 +29,7 @@ class Table_pi_k_full:
         c_spec,
         l_free_energy,
     ):
-        super().__init__(
-            pi_k_full, t_gas_full, alpha, x_opt, k, k_gas, p_spec, c_spec, l_free_energy
-        )
+        super().__init__()
         self.pi_k_full = pi_k_full
         self.t_gas_full = t_gas_full
         self.alpha = alpha
@@ -89,13 +86,14 @@ def calc_opt_params():
             m_array = []
             for Pik_full_i in Pik_full:
                 pi_array = []
-                k = kurs.get_cp_air(T_gas_full_i, 288)
+                cp_air = kurs.get_cp_air(288, T_gas_full_i)
                 T_k = kurs.calculate_compressor_temperature(
-                    T_gas_full_i, Pik_full_i, coef["effk_comp_full"]
+                    288, Pik_full_i, coef["effk_comp_full"]
                 )["TK"]
                 combustion_props = kurs.calculate_combustion_properties(
                     0.86, 0.14, T_k, T_gas_full_i, coef["effk_gas"]
                 )
+                cp_bar = combustion_props["cp_mix"]
                 k_gas = combustion_props["k"]
                 q_T = 1 / (combustion_props["alpha"] * combustion_props["L0"])
                 v_take = coef["ksi_take"] - coef["g_air_back"]
@@ -122,7 +120,7 @@ def calc_opt_params():
                         phi_t_star,
                         k_gas,
                     ),
-                    combustion_props["cp_mix"],
+                    cp_bar,
                     T_gas_full_i,
                     Pik_full_i,
                     coef["sigma_cc"],
@@ -138,7 +136,7 @@ def calc_opt_params():
                         coef["sigma_1"],
                         coef["phi_c1"],
                     ),
-                    k,
+                    kurs.get_cp_air(288, T_k) / 1000,
                     288,
                     1.4,
                     q_T,
@@ -165,13 +163,13 @@ def calc_opt_params():
                         T_gas_full_i,
                         combustion_props["alpha"],
                         x_opt,
-                        k,
+                        1.4,
                         k_gas,
                         p_spec,
                         c_spec,
                         L_free,
                     )
                 )
-            m_array.append(Table_m(m_i,pi_array))
-        t_array.append(Table_temperature(T_gas_full_i,m_array))
-        
+            m_array.append(Table_m(m_i, pi_array))
+        t_array.append(Table_temperature(T_gas_full_i, m_array))
+    return t_array

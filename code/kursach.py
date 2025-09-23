@@ -50,62 +50,7 @@ def get_cp_air(T1, T2):
     return cp_avg
 
 
-def calculate_combustion_properties(
-    C, H, L0, Hu, effG, TK, TG, cpCO2, cpH2O, cpN2, cpO2
-):
-    """
-    Вычисляет свойства продуктов сгорания топлива
-
-    Параметры:
-    C - доля углерода в топливе
-    H - доля водорода в топливе
-    L0 - теоретическое количество воздуха
-    Hu - низшая теплота сгорания топлива, Дж/кг
-    effG - эффективность сгорания топлива
-    TK - начальная температура, K
-    TG - температура горения, K
-    cpCO2, cpH2O, cpN2, cpO2 - удельные изобарные теплоемкости компонентов
-
-    Возвращает:
-    tuple: (k, alpha, gCO2, gH2O, gN2, gO2, R, cp, cv, iter_count)
-    """
-
-    # Вычисляем удельные газовые постоянные продуктов сгорания:
-    RCO2 = 8314.2 / (12 + 16 * 2)  # для углекислого газа
-    RH2O = 8314.2 / (2 + 16)  # для водяного пара
-    RN2 = 8314.2 / 28  # для азота
-    RO2 = 8314.2 / 32  # для кислорода
-
-    # Задаем начальные значения
-    k = 0
-    alpha = 1
-    kOld = 1.4
-    iter_count = 0
-
-    # Начинаем итерационный процесс
-    while abs(k - kOld) > 1e-16 and iter_count < 100:
-        # Вычисляем массовые доли компонентов
-        gCO2 = 11 / 3 * C / (1 + alpha * L0)
-        gH2O = 9 * H / (1 + alpha * L0)
-        gN2 = 0.77 * L0 * alpha / (1 + L0 * alpha)
-        gO2 = 0.23 * (alpha - 1) * L0 / (1 + L0 * alpha)
-
-        # Вычисляем теплоемкости и газовую постоянную смеси
-        cp = cpCO2 * gCO2 + cpH2O * gH2O + cpN2 * gN2 + cpO2 * gO2
-        R = RCO2 * gCO2 + RH2O * gH2O + RN2 * gN2 + RO2 * gO2
-        cv = cp - R
-
-        kOld = k
-        k = cp / cv
-
-        # Вычисляем коэффициент избытка воздуха
-        alpha = 1 / L0 * (Hu * effG / cp / (TG - TK) - 1)
-        iter_count += 1
-
-    return k, alpha, gCO2, gH2O, gN2, gO2, R, cp, cv, iter_count
-
-
-def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=100, tol=1e-16):
+def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=1000, tol=1e-16):
     if TH <= 0 or pik <= 0 or effK <= 0:
         raise ValueError("Параметры должны быть положительными")
 
@@ -155,7 +100,7 @@ def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=100, tol=1
     }
 
 
-def calculate_combustion_properties(C, H, TK, TG, effG, max_iter=1000, tol=1e-16):
+def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-16):
     """
     Вычисление свойств продуктов сгорания с итерационным уточнением
 
@@ -185,8 +130,8 @@ def calculate_combustion_properties(C, H, TK, TG, effG, max_iter=1000, tol=1e-16
     R_O2 = 8314.2 / 32  # для кислорода
 
     # 2. Вычисляем низшую теплоту сгорания и теоретическое количество воздуха
-    Hu = (33800 * C + 102500 * H) * 1000  # Дж/кг
-    L0 = (8 / 3 * C + 8 * H) / 0.23  # кг/кг
+    Hu = (33800 * gC + 102500 * gH) * 1000  # Дж/кг
+    L0 = (8 / 3 * gC + 8 * gH) / 0.23  # кг/кг
 
     # 3. Функции для расчета теплоемкостей компонентов
     # (аналоги get_cp_air для каждого компонента)
@@ -201,7 +146,7 @@ def calculate_combustion_properties(C, H, TK, TG, effG, max_iter=1000, tol=1e-16
             integral += (
                 coef * (T2**integrated_power - T1**integrated_power) / integrated_power
             )
-        return integral / (T2 - T1)
+        return integral / (T2 - T1) / 1000
 
     # 4. Итерационный процесс
     k_old = 1.4  # начальное предположение
@@ -214,8 +159,8 @@ def calculate_combustion_properties(C, H, TK, TG, effG, max_iter=1000, tol=1e-16
 
     while abs(k - k_old) > tol and iter_count < max_iter:
         # Вычисляем массовые доли компонентов
-        g_CO2 = (11 / 3 * C) / (1 + alpha * L0)
-        g_H2O = (9 * H) / (1 + alpha * L0)
+        g_CO2 = (11 / 3 * gC) / (1 + alpha * L0)
+        g_H2O = (9 * gH) / (1 + alpha * L0)
         g_N2 = (0.77 * L0 * alpha) / (1 + L0 * alpha)
         g_O2 = (0.23 * (alpha - 1) * L0) / (1 + L0 * alpha)
 
@@ -619,8 +564,6 @@ def calculate_P_spec(
     Returns:
     float: Параметр P_yA
     """
-    import math
-
     # Первое слагаемое
     term1 = ((1 + q_T - v_take) / (m + 1)) * phi_c1 * math.sqrt(2 * (1 - x_opt) * L_CB)
 
@@ -847,22 +790,23 @@ def expansion_efficiency(
         raise ValueError("Коэффициент потерь на входе должен быть > 0")
     if sigma_KC <= 0:
         raise ValueError("Коэффициент потерь в камере сгорания должен быть > 0")
-    if k_prime <= 1:
-        raise ValueError("Показатель адиабаты должен быть > 1")
     if eta_T_star <= 0 or eta_T_star > 1:
         raise ValueError("Изоэнтропический КПД должен быть в диапазоне (0, 1]")
-
-    # Вычисляем степени для упрощения формулы
+    
     exponent = (1 - k_prime) / k_prime
+    
+    pi_C_star = ((k_prime + 1) / 2) ** exponent
+
+    # Вычисляем степень понижения давления в турбине
+    pi_T_star = sigma_BX * pi_K_star * sigma_KC * sigma_1 / pi_C_star
+    # Вычисляем степени для упрощения формулы
+    
     pi_T_exp = pi_T_star**exponent
     pi_C_exp = pi_C_star**exponent
     pi_exp = (pi_T_star * pi_C_exp) ** exponent
 
     # Вычисляем степень расширения в сопле. Режим расчётный
-    pi_C_star = ((k_prime + 1) / 2) ** exponent
-
-    # Вычисляем степень понижения давления в турбине
-    pi_T_star = sigma_BX * pi_K_star * sigma_KC * sigma_1 / pi_C_star
+   
 
     numerator = (1 - pi_T_exp) * eta_T_star + (1 - (1 - pi_T_exp) * eta_T_star) * (
         1 - pi_C_exp
