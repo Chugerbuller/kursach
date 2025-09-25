@@ -1,3 +1,4 @@
 import lab1 as lab
 
-print(lab.calc_opt_params())
+test = lab.calc_opt_params()
+print(test)

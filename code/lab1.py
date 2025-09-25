@@ -80,12 +80,12 @@ def calc_opt_params():
     for i in range(7):
         Pik_full.append(step * engine["Pik_full"])
         step += 0.05
+    t_array = []
+    m_array = []
+    pi_array = []
     for T_gas_full_i in T_gas_full:
-        t_array = []
         for m_i in m:
-            m_array = []
             for Pik_full_i in Pik_full:
-                pi_array = []
                 cp_air = kurs.get_cp_air(288, T_gas_full_i)
                 T_k = kurs.calculate_compressor_temperature(
                     288, Pik_full_i, coef["effk_comp_full"]
@@ -170,6 +170,8 @@ def calc_opt_params():
                         L_free,
                     )
                 )
-            m_array.append(Table_m(m_i, pi_array))
-        t_array.append(Table_temperature(T_gas_full_i, m_array))
+            m_array.append(Table_m(m_i, pi_array.copy()))
+            pi_array.clear()
+        t_array.append(Table_temperature(T_gas_full_i, m_array.copy()))
+        m_array.clear()
     return t_array
