@@ -207,7 +207,7 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
 
     return {
         "alpha": alpha,
-        "k": k,
+        "k": k, 
         "cp_mix": cp_mix,
         "R_mix": R_mix,
         "cv_mix": cv_mix,
@@ -219,7 +219,24 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
         "L0": L0,
     }
 
-
+def calculate_eff_comp(L_CB, q_T, eta_T, H_u):
+    """
+    Вычисляет параметр n_e по формуле:
+    
+    n_e = L_CB / (q_T * η_T * H_u)
+    
+    Parameters:
+    L_CB (float): Параметр L_CB
+    q_T (float): Параметр q_T
+    eta_T (float): КПД η_T
+    H_u (float): Низшая теплота сгорания H_u
+    
+    Returns:
+    float: Параметр n_e
+    """
+    n_e = L_CB / (q_T * eta_T * H_u)
+    
+    return n_e
 def calculate_fan_temperature(TB, LB, effB, R=287.0):
     """Расчет температуры за вентилятором"""
     TB2old = 0.0
