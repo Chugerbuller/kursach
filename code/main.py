@@ -1,4 +1,8 @@
 import lab1 as lab
+import matplotlib.pyplot as plt
+import numpy as np # Эта библиотека для работы с числами и массивами
+
+
 engine = {
         "P": 264.447,
         "Pik_full": 34.5,
@@ -93,5 +97,59 @@ for m_i in fuel_map:
         min_fuel = fuel_map[m_i].c_spec
         opt_m = m_i
         
+# Создадим данные для примера
+# Создаем массив чисел от 0 до 10 с шагом 0.1
+y = []
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,T_gas_opt, opt_m, pi_i).c_spec)
 
+# Создаем график
+plt.figure(figsize=(15, 10)) # Задаем размер картинки (ширина, высота)
+plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,engine["T_gas_full"], engine['m'], pi_i).c_spec)
+plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,T_gas_opt, 5.2, pi_i).c_spec)
+plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
+
+# Добавляем названия и легенду
+plt.title('График удельного расхода топлива') # Заголовок
+plt.xlabel('πK*') # Подпись оси X
+plt.ylabel('Удельный расход топлива, кг/Н/ч') # Подпись оси Y
+plt.grid(True) # Включаем сетку
+plt.legend() # Показываем легенду
+
+# Самое важное: сохраняем график в файл
+# dpi (dots per inch) отвечает за качество картинки
+plt.savefig('c-spec.png', dpi=300, bbox_inches='tight')
+
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,T_gas_opt, opt_m, pi_i).p_spec)
+
+# Создаем график
+plt.figure(figsize=(15, 10)) # Задаем размер картинки (ширина, высота)
+plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,engine["T_gas_full"], engine['m'], pi_i).p_spec)
+plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.CalcProto(coef,T_gas_opt, 4.4, pi_i).p_spec)
+plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
+
+# Добавляем названия и легенду
+plt.title('График удельной тяги') # Заголовок
+plt.xlabel('πK*') # Подпись оси X
+plt.ylabel('Удельная тяга, м/с ') # Подпись оси Y
+plt.grid(True) # Включаем сетку
+plt.legend() # Показываем легенду
+
+# Самое важное: сохраняем график в файл
+# dpi (dots per inch) отвечает за качество картинки
+plt.savefig('p-spec.png', dpi=300, bbox_inches='tight')
 print()
