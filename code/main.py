@@ -30,7 +30,7 @@ coef = {
 res = lab.calc_opt_params(engine, coef)
 X = 1.075
 p_project = engine["P"] * X
-proto = lab.CalcProto(coef,engine["T_gas_full"], engine["m"], engine["Pik_full"])
+proto = lab.calc_proto(coef,engine["T_gas_full"], engine["m"], engine["Pik_full"])
 l_free_project = proto.l_free_energy * X * X
 
 Pik_full = []
@@ -54,7 +54,7 @@ for i in range(10):
 for T_gas_full_i in T_gas_full:
     
     m_temp.append(lab.Table_m(engine["m"],
-                                  lab.CalcProto(coef
+                                  lab.calc_proto(coef
                                                 ,T_gas_full_i
                                                 ,engine["m"],
                                                 engine["Pik_full"])))
@@ -77,7 +77,7 @@ T_gas_opt = min_t + (((max_t - min_t) / (max_energy - min_energy)) * (l_free_pro
 opt_pi_map = {}
 
 for pi_k_full_i in Pik_full:
-    opt_pi_map[pi_k_full_i] = lab.CalcProto(coef,T_gas_opt, engine["m"], pi_k_full_i)
+    opt_pi_map[pi_k_full_i] = lab.calc_proto(coef,T_gas_opt, engine["m"], pi_k_full_i)
 max_eff = 0.0
 for pi in opt_pi_map:
     if opt_pi_map[pi].eff_comp > max_eff:
@@ -90,7 +90,7 @@ min_fuel = 99999999
 opt_m = 0.0
 
 for m_i in m:
-    fuel_map[m_i] = lab.CalcProto(coef,T_gas_opt, m_i, opt_pi)
+    fuel_map[m_i] = lab.calc_proto(coef,T_gas_opt, m_i, opt_pi)
     
 for m_i in fuel_map:
     if fuel_map[m_i].c_spec < min_fuel:
@@ -100,19 +100,21 @@ for m_i in fuel_map:
 # Создадим данные для примера
 # Создаем массив чисел от 0 до 10 с шагом 0.1
 y = []
+test = []
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,T_gas_opt, opt_m, pi_i).c_spec)
-
+    y.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).c_spec)
+    test.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i))
+temp = lab.calc_proto(coef,engine["T_gas_full"], engine['m'], engine["Pik_full"])
 # Создаем график
 plt.figure(figsize=(15, 10)) # Задаем размер картинки (ширина, высота)
 plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,engine["T_gas_full"], engine['m'], pi_i).c_spec)
+    y.append(lab.calc_proto(coef,engine["T_gas_full"], engine['m'], pi_i).c_spec)
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,T_gas_opt, 5.2, pi_i).c_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, 5.2, pi_i).c_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 
 # Добавляем названия и легенду
@@ -128,18 +130,18 @@ plt.savefig('c-spec.png', dpi=300, bbox_inches='tight')
 
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,T_gas_opt, opt_m, pi_i).p_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).p_spec)
 
 # Создаем график
 plt.figure(figsize=(15, 10)) # Задаем размер картинки (ширина, высота)
 plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,engine["T_gas_full"], engine['m'], pi_i).p_spec)
+    y.append(lab.calc_proto(coef,engine["T_gas_full"], engine['m'], pi_i).p_spec)
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.CalcProto(coef,T_gas_opt, 4.4, pi_i).p_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, 4.4, pi_i).p_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 
 # Добавляем названия и легенду

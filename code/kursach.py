@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 
-def get_cp_air(T, R=287.0):
+def get_cp_air_poly(T, R=287.0):
     poly = np.array([-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39])
 
     # Вычисление полинома (коэффициенты идут от старшей степени к младшей)
@@ -64,21 +64,14 @@ def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=1000, tol=
 
     while abs(TK - TK_old) > tol and iter_count < max_iter:
         try:
-            cpAir = get_cp_air(TH, TK)
-            cvAir = cpAir - R
-
-            # Защита от отрицательной теплоемкости
-            if cvAir <= 0:
-                raise ValueError("Отрицательная изохорная теплоемкость")
-
-            kAir = cpAir / cvAir
+            cpAir = get_cp_air_poly(TK)
 
             TK_old = TK
-            TK = TH * (1 + (pik ** ((kAir - 1) / kAir) - 1) / effK)
+            TK = TH * (1 + (pik ** ((cpAir['k'] - 1) / cpAir['k']) - 1) / effK)
 
             # Сохраняем историю итераций
             history.append(
-                {"iteration": iter_count, "TK": TK, "cpAir": cpAir, "kAir": kAir}
+                {"iteration": iter_count, "TK": TK, "cpAir": cpAir['cp'], "kAir": cpAir['k']}
             )
 
             iter_count += 1
@@ -91,9 +84,9 @@ def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=1000, tol=
 
     return {
         "TK": TK,
-        "cpAir": cpAir,
-        "cvAir": cvAir,
-        "kAir": kAir,
+        "cpAir": cpAir['cp'],
+        "cvAir": cpAir['cv'],
+        "kAir": cpAir['k'],
         "iterations": iter_count,
         "converged": converged,
         "history": history,
@@ -163,7 +156,6 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
         g_H2O = (9 * gH) / (1 + alpha * L0)
         g_N2 = (0.77 * L0 * alpha) / (1 + L0 * alpha)
         g_O2 = (0.23 * (alpha - 1) * L0) / (1 + L0 * alpha)
-
         # Вычисляем средние теплоемкости в интервале [TK, TG]
         cp_CO2 = get_cp(TK, TG, np.array([-4.5e-7, 8.2e-4, -0.35, 850.0]))
         cp_H2O = get_cp(TK, TG, np.array([-3.8e-7, 7.1e-4, -0.32, 1860.0]))
