@@ -64,7 +64,7 @@ def calc_opt_params(engine, coef):
     for T_gas_full_i in T_gas_full:
         for m_i in m:
             for Pik_full_i in Pik_full:
-                pi_array.append(CalcProto(coef,T_gas_full_i,m_i,Pik_full_i))
+                pi_array.append(calc_proto(coef,T_gas_full_i,m_i,Pik_full_i))
             m_array.append(Table_m(m_i, pi_array.copy()))
             pi_array.clear()
         t_array.append(Table_temperature(T_gas_full_i, m_array.copy()))
@@ -72,11 +72,13 @@ def calc_opt_params(engine, coef):
 
     return t_array
 
-def CalcProto(coef, T_gas_full_i, m_i, Pik_full_i):
-    cp_air = kurs.get_cp_air(288, T_gas_full_i)
-    T_k = kurs.calculate_compressor_temperature(
+def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
+    
+    compressor = kurs.calculate_compressor_temperature(
                 288, Pik_full_i, coef["effk_comp_full"]
             )["TK"]
+    T_k = compressor['TK']
+    k_air = compressor['kAir']
     combustion_props = kurs.calculate_combustion_properties(
                 0.86, 0.14, T_k, T_gas_full_i, coef["effk_gas"]
             )
@@ -125,11 +127,11 @@ def CalcProto(coef, T_gas_full_i, m_i, Pik_full_i):
                     ),
                     kurs.get_cp_air(288, T_k) / 1000,
                     288,
-                    1.4,
+                    k_air,
                     q_T,
                     v_take,
                     kurs.compressor_efficiency(
-                        Pik_full_i, coef["sigma_intake"], 1.4, coef["effk_comp_full"]
+                        Pik_full_i, coef["sigma_intake"], k_air, coef["effk_comp_full"]
                     ),
                 )
     p_spec = kurs.calculate_P_spec(
@@ -150,7 +152,7 @@ def CalcProto(coef, T_gas_full_i, m_i, Pik_full_i):
                         T_gas_full_i,
                         combustion_props["alpha"],
                         x_opt,
-                        1.4,
+                        k_air,
                         k_gas,
                         p_spec,
                         c_spec,
