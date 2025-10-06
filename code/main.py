@@ -28,7 +28,7 @@ coef = {
         "g_air_back": 0.124,
     }
 res = lab.calc_opt_params(engine, coef)
-X = 1.075
+X = 1.1
 p_project = engine["P"] * X
 proto = lab.calc_proto(coef,engine["T_gas_full"], engine["m"], engine["Pik_full"])
 l_free_project = proto.l_free_energy * X * X

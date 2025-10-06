@@ -122,7 +122,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         coef["sigma_intake"],
                         coef["sigma_cc"],
                         kurs.calculate_combustion_properties(
-                0.86, 0.14, 288, T_gas_full_i, coef["effk_gas"]
+                0.86, 0.14,T_gas_full_i, 288, coef["effk_gas"]
             )['k'],
                         coef["effk_hpt_full"] * coef["effk_lpt_full"],
                         coef["sigma_1"],
@@ -134,7 +134,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                     q_T,
                     v_take,
                     kurs.compressor_efficiency(
-                        Pik_full_i, coef["sigma_intake"], k_air, coef["effk_comp_full"]
+                        Pik_full_i, coef["sigma_intake"], kurs.get_cp_air(T_k,288)['k'], coef["effk_comp_full"]
                     ),
                 )
     p_spec = kurs.calculate_P_spec(
