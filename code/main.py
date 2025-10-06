@@ -44,11 +44,11 @@ m = [engine["m"] * 0.8,
          engine["m"],
          engine["m"] * 1.2]
     
-step = 0.8
+step = 0.4
 t_temp = []
 m_temp = []
 
-for i in range(10):
+for i in range(18):
         Pik_full.append(step * engine["Pik_full"])
         step += 0.05
 for T_gas_full_i in T_gas_full:
@@ -79,12 +79,13 @@ opt_pi_map = {}
 for pi_k_full_i in Pik_full:
     opt_pi_map[pi_k_full_i] = lab.calc_proto(coef,T_gas_opt, engine["m"], pi_k_full_i)
 max_eff = 0.0
+opt_pi = 0.0
 for pi in opt_pi_map:
     if opt_pi_map[pi].eff_comp > max_eff:
         max_eff = opt_pi_map[pi].eff_comp
         opt_pi = pi
 
-
+print(opt_pi)
 fuel_map = {}
 min_fuel = 99999999
 opt_m = 0.0

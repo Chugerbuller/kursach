@@ -2,52 +2,36 @@ import numpy as np
 import math
 
 
-def get_cp_air_poly(T, R=287.0):
-    poly = np.array([-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39])
+def get_cp_air(T1, T2):
+    poly =[-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39]
 
     # Вычисление полинома (коэффициенты идут от старшей степени к младшей)
-    cp = np.polyval(poly, T)
-
-    cv = cp - R
-    k = cp / cv
-
-    return {"cp": cp, "cv": cv, "k": k}
+    return get_cp(T1,T2,poly)
 
 
-def get_cp_air(T1, T2):
+def get_cp(T1, T2, poly):
     """
-    Вычисление средней теплоемкости воздуха в интервале температур [T1, T2]
-    через интегрирование аппроксимационного полинома
-
-    Parameters:
-    T1 : float
-        Нижний предел температуры [K]
-    T2 : float
-        Верхний предел температуры [K]
-
-    Returns:
-    float : средняя изобарная теплоемкость в интервале [T1, T2] [Дж/(кг·К)]
+    Вычисляет среднюю теплоемкость воздуха в заданном температурном диапазоне.
+    
+    Параметры:
+    T1 - начальная температура [K]
+    T2 - конечная температура [K]
+    
+    Возвращает:
+    cp - средняя теплоемкость воздуха [Дж/(кг·К)]
     """
-    # Коэффициенты интерполяционного полинома
-    poly = np.array([-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39])
+    R=287.0
     n = len(poly)
-
-    cp_integral = 0.0
-
+    cp = 0
+    
     for i in range(n):
-        # Степень полинома после интегрирования
-        power = n - i  # оригинальная степень
-        integrated_power = power + 1  # степень после интегрирования
-
-        # Вычисление интеграла для каждого слагаемого
-        term_T2 = poly[i] * T2**integrated_power / integrated_power
-        term_T1 = poly[i] * T1**integrated_power / integrated_power
-        cp_integral += term_T2 - term_T1
-
-    # Средняя теплоемкость
-    cp_avg = cp_integral / (T2 - T1)
-
-    return cp_avg
+        power = n - i - 1
+        cp += poly[i] * (T2**(power + 1) - T1**(power + 1)) / (power + 1)
+    
+    cp = cp / (T2 - T1)
+    cv = cp - R
+    k = cp/cv
+    return {"cp": cp, "cv": cv, "k": k}
 
 
 def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=1000, tol=1e-16):
@@ -64,7 +48,7 @@ def calculate_compressor_temperature(TH, pik, effK, R=287.0, max_iter=1000, tol=
 
     while abs(TK - TK_old) > tol and iter_count < max_iter:
         try:
-            cpAir = get_cp_air_poly(TK)
+            cpAir = get_cp_air(TH,TK)
 
             TK_old = TK
             TK = TH * (1 + (pik ** ((cpAir['k'] - 1) / cpAir['k']) - 1) / effK)
@@ -123,23 +107,11 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
     R_O2 = 8314.2 / 32  # для кислорода
 
     # 2. Вычисляем низшую теплоту сгорания и теоретическое количество воздуха
-    Hu = (33800 * gC + 102500 * gH) * 1000  # Дж/кг
+    Hu = (33800 * gC + 102500 * gH) * 1000 # Дж/кг
     L0 = (8 / 3 * gC + 8 * gH) / 0.23  # кг/кг
 
     # 3. Функции для расчета теплоемкостей компонентов
     # (аналоги get_cp_air для каждого компонента)
-    def get_cp(T1, T2, poly):
-        """Теплоемкость CO2 в интервале [T1, T2]"""
-        # Коэффициенты для CO2 (замените на реальные значения)
-        n = len(poly)
-        integral = 0.0
-        for i, coef in enumerate(poly):
-            power = n - i
-            integrated_power = power + 1
-            integral += (
-                coef * (T2**integrated_power - T1**integrated_power) / integrated_power
-            )
-        return integral / (T2 - T1) / 1000
 
     # 4. Итерационный процесс
     k_old = 1.4  # начальное предположение
@@ -147,20 +119,19 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
     alpha = 1.0  # начальный коэффициент избытка воздуха
     iter_count = 0
     converged = False
-
-    history = []
-
+    cp_CO2 = get_cp(TK, TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75])['cp']
+    cp_H2O = get_cp(TK, TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53])['cp']
+    cp_N2 = get_cp(TK, TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68])['cp']
+    cp_O2 = get_cp(TK, TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897])['cp']
+    
     while abs(k - k_old) > tol and iter_count < max_iter:
         # Вычисляем массовые доли компонентов
-        g_CO2 = (11 / 3 * gC) / (1 + alpha * L0)
+        g_CO2 = (11 * gC) /(3 *(1 + alpha * L0))
         g_H2O = (9 * gH) / (1 + alpha * L0)
         g_N2 = (0.77 * L0 * alpha) / (1 + L0 * alpha)
         g_O2 = (0.23 * (alpha - 1) * L0) / (1 + L0 * alpha)
         # Вычисляем средние теплоемкости в интервале [TK, TG]
-        cp_CO2 = get_cp(TK, TG, np.array([-4.5e-7, 8.2e-4, -0.35, 850.0]))
-        cp_H2O = get_cp(TK, TG, np.array([-3.8e-7, 7.1e-4, -0.32, 1860.0]))
-        cp_N2 = get_cp(TK, TG, np.array([-2.8e-7, 6.5e-4, -0.28, 1040.0]))
-        cp_O2 = get_cp(TK, TG, np.array([-3.1e-7, 6.8e-4, -0.29, 920.0]))
+        history = []
         # cp_air = get_cp(TK, TG, np.array([-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39]))
 
         # Вычисляем теплоемкость и газовую постоянную смеси
@@ -236,7 +207,7 @@ def calculate_fan_temperature(TB, LB, effB, R=287.0):
     iter_count = 0
 
     while abs(TB2 - TB2old) > 1e-16 and iter_count < 100:
-        cpAir = get_cp_air(TB, TB2)
+        cpAir = get_cp_air(TB, TB2)['cp']
         cvAir = cpAir - R
         kAir = cpAir / cvAir
 
@@ -260,7 +231,7 @@ def get_gas_parameters(T, T_ref, Hu, L0, gC, effG, alpha):
 def calc_mix_temp(T1, T2, g1, g2, Hu, L0, gC, effG, alpha):
     # Истинные теплоемкости ДО цикла
     cpGasG = get_gas_parameters(T1, T1, Hu, L0, gC, effG, alpha)[0]
-    cpAirK = get_cp_air(T2, T2)
+    cpAirK = get_cp_air(T2, T2)['cp']
 
     tCorr = T1
     tCorrOld = 0
@@ -270,7 +241,7 @@ def calc_mix_temp(T1, T2, g1, g2, Hu, L0, gC, effG, alpha):
         cpGas, kGas, RGas, alpha = get_gas_parameters(
             tCorr, tCorr, Hu, L0, gC, effG, alpha
         )
-        cpAir = get_cp_air(tCorr, tCorr)
+        cpAir = get_cp_air(tCorr, tCorr)['cp']
 
         tCorrOld = tCorr
 
@@ -294,8 +265,8 @@ def calculate_mixing_temperature(
     """
     # Истинные теплоемкости ДО цикла (не меняются внутри цикла)
     cpGasG, kGas, RGas, alpha = get_gas_parameters(T1, T1, Hu, L0, gC, effG, alpha)
-    cpAirK = get_cp_air(T2, T2)  # для охлаждающего воздуха при T2
-    cpAir2 = get_cp_air(T3, T3)  # для воздуха второго контура при T3
+    cpAirK = get_cp_air(T2, T2)['cp'] # для охлаждающего воздуха при T2
+    cpAir2 = get_cp_air(T3, T3)['cp'] # для воздуха второго контура при T3
 
     tMix = T1  # начальное приближение
     tMixOld = 0.0
@@ -306,7 +277,7 @@ def calculate_mixing_temperature(
         cpGas, kGas, RGas, alpha = get_gas_parameters(
             tMix, tMix, Hu, L0, gC, effG, alpha
         )
-        cpAir = get_cp_air(tMix, tMix)  # свойства воздуха при tMix
+        cpAir = get_cp_air(tMix, tMix)['cp']  # свойства воздуха при tMix
 
         tMixOld = tMix
 
@@ -332,7 +303,7 @@ def calculate_mix_properties(T1, T2, g1, g2, g3, Hu, L0, gC, effG, alpha, R=287.
     """
     # Получаем средние теплоемкости в интервале [T1, T2]
     cpGas, kGas, RGas, alpha = get_gas_parameters(T1, T2, Hu, L0, gC, effG, alpha)
-    cpAir = get_cp_air(T1, T2)
+    cpAir = get_cp_air(T1, T2)['cp']
 
     # Свойства смеси по правилу смесей
     cpMix = (cpGas * g1 + cpAir * (g2 + g3)) / (g1 + g2 + g3)

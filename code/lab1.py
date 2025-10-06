@@ -79,6 +79,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
             )
     T_k = compressor['TK']
     k_air = compressor['kAir']
+    cp_air = compressor['cpAir']
     combustion_props = kurs.calculate_combustion_properties(
                 0.86, 0.14, T_k, T_gas_full_i, coef["effk_gas"]
             )
@@ -127,7 +128,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         coef["sigma_1"],
                         coef["phi_c1"],
                     ),
-                    kurs.get_cp_air(288, T_k) / 1000,
+                    cp_air,
                     288,
                     k_air,
                     q_T,
@@ -136,17 +137,6 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         Pik_full_i, coef["sigma_intake"], k_air, coef["effk_comp_full"]
                     ),
                 )
-    temp = kurs.expansion_efficiency(
-                        Pik_full_i,
-                        coef["sigma_intake"],
-                        coef["sigma_cc"],
-                        kurs.calculate_combustion_properties(
-                0.86, 0.14, 288, T_gas_full_i, coef["effk_gas"]
-            )['k'],
-                        coef["effk_hpt_full"] * coef["effk_lpt_full"],
-                        coef["sigma_1"],
-                        coef["phi_c1"],
-                    )
     p_spec = kurs.calculate_P_spec(
                     q_T,
                     v_take,
