@@ -1,7 +1,7 @@
 import lab1 as lab
 import matplotlib.pyplot as plt
 import numpy as np # Эта библиотека для работы с числами и массивами
-
+import json
 
 engine = {
         "P": 264.447,
@@ -117,7 +117,6 @@ y.clear()
 for pi_i in Pik_full:
     y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).c_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
-
 # Добавляем названия и легенду
 plt.title('График удельного расхода топлива') # Заголовок
 plt.xlabel('πK*') # Подпись оси X
@@ -157,3 +156,40 @@ plt.legend() # Показываем легенду
 plt.savefig('p-spec.png', dpi=300, bbox_inches='tight')
 print()
 res = lab.calc_opt_params(engine, coef)
+
+y.clear()
+plt.figure(figsize=(15, 10))
+
+for pi_i in Pik_full:
+    y.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).l_free_energy)
+plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом # Рисуем линию с меткой и цветом
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.calc_proto(coef,engine["T_gas_full"], engine['m'], pi_i).l_free_energy)
+plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
+y.clear()
+for pi_i in Pik_full:
+    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).l_free_energy)
+plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
+# Добавляем названия и легенду
+plt.title('График свободной энергии') # Заголовок
+plt.xlabel('πK*') # Подпись оси X
+plt.ylabel('свободная энергия дж/кг') # Подпись оси Y
+plt.grid(True) # Включаем сетку
+plt.legend() # Показываем легенду
+
+# Самое важное: сохраняем график в файл
+# dpi (dots per inch) отвечает за качество картинки
+plt.savefig('l-free.png', dpi=300, bbox_inches='tight')
+
+res = lab.calc_opt_params(engine,coef)
+res_string = "T\tm\t\tpi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n"
+for T_table in res:
+    res_string += (f"T:{T_table.t:.1f}\n")
+    for m_table in T_table.m:
+        res_string += (f"\tm:{m_table.m:.2f}\n")
+        for pi_table in m_table.pi_k_full:
+            res_string += (f"\t\t{pi_table.pi_k_full:.4f}|{pi_table.t_gas_full:.4f}|{pi_table.alpha:.4f}|{pi_table.x_opt:.4f}|{pi_table.k:.4f}|{pi_table.k_gas:.4f}|{pi_table.p_spec:.4f}|{pi_table.c_spec:.4f}|{pi_table.l_free_energy:.4f}\n")
+print(res_string)
+with open("results.txt", "w") as file:  
+    file.write(res_string)  
