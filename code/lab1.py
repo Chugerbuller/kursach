@@ -53,8 +53,8 @@ def calc_opt_params(engine, coef):
         engine["T_gas_full"] + 150,
     ]
     m = [engine["m"] * 0.8,
-         engine["m"],
-         engine["m"] * 1.2]
+        engine["m"],
+        engine["m"] * 1.2]
     
     step = 0.8
     for i in range(7):
@@ -87,56 +87,45 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
     k_gas = combustion_props["k"]
     q_T = 1 / (combustion_props["alpha"] * combustion_props["L0"])
     v_take = coef["ksi_take"] - coef["g_air_back"]
-    x_opt = kurs.optimal_parameter(
-                    coef["phi_c1"],
-                    coef["phi_c2"],
-                    q_T,
-                    v_take,
-                    m_i,
-                    coef["effk_lpt_full"],
-                    coef["effk_fan_full"],
-                )
     phi_c_star = kurs.calculate_pi_c_star(k_gas)
-    phi_t_star = kurs.calculate_pi_T_star(
-                    coef["sigma_intake"],
-                    Pik_full_i,
-                    coef["sigma_cc"],
-                    coef["sigma_1"],
-                    phi_c_star,
-                )
-    L_free = kurs.calculate_full_free_energy(
-                    kurs.calculate_phi_co(
-                        (coef["effk_hpt_full"] * coef["effk_lpt_full"]),
-                        phi_t_star,
-                        k_gas,
-                    ),
-                    cp_bar,
-                    T_gas_full_i,
-                    Pik_full_i,
-                    coef["sigma_cc"],
-                    coef["sigma_intake"],
-                    coef["sigma_1"],
-                    k_gas,
-                    kurs.expansion_efficiency(
-                        Pik_full_i,
-                        coef["sigma_intake"],
-                        coef["sigma_cc"],
-                        kurs.calculate_combustion_properties(
-                0.86, 0.14,T_gas_full_i, 288, coef["effk_gas"]
-            )['k'],
-                        coef["effk_hpt_full"] * coef["effk_lpt_full"],
-                        coef["sigma_1"],
-                        coef["phi_c1"],
-                    ),
-                    cp_air,
-                    288,
-                    k_air,
-                    q_T,
-                    v_take,
-                    kurs.compressor_efficiency(
-                        Pik_full_i, coef["sigma_intake"], kurs.get_cp_air(T_k,288)['k'], coef["effk_comp_full"]
-                    ),
-                )
+    comp_eff = kurs.calculate_eta_c(coef['sigma_intake'],
+                                    Pik_full_i,
+                                    k_air,
+                                    coef['effk_comp_full'])
+    phi_t_star = kurs.calculate_pi_t_star(coef['sigma_intake'],
+                                            Pik_full_i,
+                                            coef['sigma_cc'],
+                                            coef['sigma_1'],
+                                            phi_c_star)
+    eta_t_star = ((coef['effk_hpt_full'] + coef['effk_lpt_full']) / 2) * (1 + 0.03)
+    expansion_eff = kurs.calculate_eta_p(phi_t_star,eta_t_star,phi_c_star,coef['phi_c1'],k_gas)
+    phi_c0 = kurs.calculate_phi_co(eta_t_star,phi_t_star,k_gas)
+    L_free = kurs.calculate_l_free(
+        phi_c0,
+        cp_air,
+        cp_bar,
+        T_gas_full_i,
+        Pik_full_i,
+        coef['sigma_cc'],
+        coef['sigma_intake'],
+        coef['sigma_1'],
+        expansion_eff,
+        288,
+        q_T,
+        v_take,
+        comp_eff,
+        k_air,
+        k_gas
+        )
+    x_opt = kurs.optimal_parameter(
+        coef['phi_c1'],
+        coef['phi_c2'],
+        q_T,
+        v_take,
+        m_i,
+        coef['effk_lpt_full'],
+        coef['effk_fan_full']
+        )
     p_spec = kurs.calculate_P_spec(
                     q_T,
                     v_take,
@@ -148,7 +137,6 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                     coef["effk_lpt_full"],
                     coef["effk_fan_full"],
                 )
-    eff_comp = kurs.calculate_eff_comp(L_free,q_T,coef["effk_gas"],combustion_props["Hu"])
     c_spec = kurs.calculate_c_spec(q_T, coef["ksi_take"], m_i, p_spec)
     return Table_pi_k_full(
                         Pik_full_i,
@@ -160,6 +148,6 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         p_spec,
                         c_spec,
                         L_free,
-                        eff_comp
+                        comp_eff
                     )
                 

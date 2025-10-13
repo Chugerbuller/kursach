@@ -27,8 +27,8 @@ coef = {
         "ksi_take": 0.155,
         "g_air_back": 0.124,
     }
-res = lab.calc_opt_params(engine, coef)
-X = 1.1
+
+X = 1.07
 p_project = engine["P"] * X
 proto = lab.calc_proto(coef,engine["T_gas_full"], engine["m"], engine["Pik_full"])
 l_free_project = proto.l_free_energy * X * X
@@ -41,7 +41,7 @@ T_gas_full = [
         engine["T_gas_full"] + 200,
     ]
 m = [engine["m"] * 0.8,
-         engine["m"],
+        engine["m"],
          engine["m"] * 1.2]
     
 step = 0.4
@@ -54,7 +54,7 @@ for i in range(18):
 for T_gas_full_i in T_gas_full:
     
     m_temp.append(lab.Table_m(engine["m"],
-                                  lab.calc_proto(coef
+                                lab.calc_proto(coef
                                                 ,T_gas_full_i
                                                 ,engine["m"],
                                                 engine["Pik_full"])))
@@ -115,7 +115,7 @@ for pi_i in Pik_full:
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.calc_proto(coef,T_gas_opt, 5.2, pi_i).c_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).c_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 
 # Добавляем названия и легенду
@@ -142,7 +142,7 @@ for pi_i in Pik_full:
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.calc_proto(coef,T_gas_opt, 4.4, pi_i).p_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).p_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 
 # Добавляем названия и легенду
@@ -156,3 +156,4 @@ plt.legend() # Показываем легенду
 # dpi (dots per inch) отвечает за качество картинки
 plt.savefig('p-spec.png', dpi=300, bbox_inches='tight')
 print()
+res = lab.calc_opt_params(engine, coef)
