@@ -191,5 +191,14 @@ for T_table in res:
         for pi_table in m_table.pi_k_full:
             res_string += (f"\t\t{pi_table.pi_k_full:.4f}|{pi_table.t_gas_full:.4f}|{pi_table.alpha:.4f}|{pi_table.x_opt:.4f}|{pi_table.k:.4f}|{pi_table.k_gas:.4f}|{pi_table.p_spec:.4f}|{pi_table.c_spec:.4f}|{pi_table.l_free_energy:.4f}\n")
 print(res_string)
+p_cpec_var = 0
+variant = {}
+for pi_i in Pik_full:
+    temp = lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).p_spec
+    if temp >= p_cpec_var:
+        variant = lab.calc_proto(coef,T_gas_opt, opt_m, pi_i)
+        p_cpec_var = temp
+with open("variant.txt", "w") as file:
+    file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{variant.t_gas_full:.4f}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
 with open("results.txt", "w") as file:  
     file.write(res_string)  
