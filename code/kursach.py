@@ -194,13 +194,29 @@ def calculate_fan_temperature(TB, LB, effB, R=287.0):
         kAir = cpAir / cvAir
 
         TB2old = TB2
-        piB = (effB * LB / cpAir / TB + 1) ** (kAir / (kAir - 1))
-        TB2 = TB * (1 + (piB ** ((kAir - 1) / kAir) - 1) / effB)
+        piB =  math.pow((effB * LB / cpAir / TB + 1),(kAir / (kAir - 1)))
+        if piB > 1.95:
+            piB = 1.95
+        TB2 = TB * (1 + (math.pow(piB,((kAir - 1) / kAir)) - 1) / effB)
 
         iter_count += 1
 
     return TB2, piB, kAir, cpAir, iter_count
+def calc_LB2(TB, TB_star, piB_star, etaB_star):
+    TB2old = 0.0
+    TB2 = 300.0
+    iter_count = 0
+    while abs(TB2 - TB2old) > 1e-16 and iter_count < 100:
+        cpAir = get_cp_air(TB, TB2)['cp']
+        cvAir = cpAir - 287
+        kAir = cpAir / cvAir
 
+        TB2old = TB2
+        LB2 =  cpAir * TB_star * (math.pow(piB_star,((kAir-1)/kAir) - 1)) / etaB_star
+        TB2 = TB_star * (1 + (math.pow(piB_star, (kAir-1)/kAir) - 1) / etaB_star)
+        iter_count += 1
+        
+    return {"TB2full": TB2, "LB2":LB2}
 def get_in_geometry(DIN, F, geom_type):
     """
     Вычисляет геометрические параметры на основе относительного диаметра и площади сечения.
