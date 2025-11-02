@@ -42,7 +42,7 @@ T_gas_full = [
     ]
 m = [engine["m"] * 0.8,
         engine["m"],
-         engine["m"] * 1.2]
+        engine["m"] * 1.2]
     
 step = 0.4
 t_temp = []
@@ -51,8 +51,8 @@ m_temp = []
 for i in range(18):
         Pik_full.append(step * engine["Pik_full"])
         step += 0.05
+
 for T_gas_full_i in T_gas_full:
-    
     m_temp.append(lab.Table_m(engine["m"],
                                 lab.calc_proto(coef
                                                 ,T_gas_full_i
@@ -66,10 +66,10 @@ min_t = 0
 max_t = 0
 for t_table in t_temp:
     free_energy =  t_table.m[0].pi_k_full.l_free_energy
-    if free_energy > min_energy and free_energy < l_free_project:
+    if min_energy < free_energy < l_free_project:
         min_energy = free_energy
         min_t = t_table.t
-    if free_energy < max_energy and free_energy > l_free_project:
+    if max_energy > free_energy > l_free_project:
         max_energy = free_energy
         max_t = t_table.t
 T_gas_opt = min_t + (((max_t - min_t) / (max_energy - min_energy)) * (l_free_project - min_energy))
@@ -81,8 +81,8 @@ for pi_k_full_i in Pik_full:
 max_eff = 0.0
 opt_pi = 0.0
 for pi in opt_pi_map:
-    if opt_pi_map[pi].eff_comp > max_eff:
-        max_eff = opt_pi_map[pi].eff_comp
+    if opt_pi_map[pi].l_free_energy > max_eff:
+        max_eff = opt_pi_map[pi].l_free_energy
         opt_pi = pi
 
 print(opt_pi)
@@ -115,7 +115,7 @@ for pi_i in Pik_full:
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).c_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt, 5.1, pi_i).c_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 # Добавляем названия и легенду
 plt.title('График удельного расхода топлива') # Заголовок
@@ -131,7 +131,6 @@ plt.savefig('c-spec.png', dpi=300, bbox_inches='tight')
 y.clear()
 for pi_i in Pik_full:
     y.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).p_spec)
-
 # Создаем график
 plt.figure(figsize=(15, 10)) # Задаем размер картинки (ширина, высота)
 plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом
@@ -141,7 +140,7 @@ for pi_i in Pik_full:
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).p_spec)
+    y.append(lab.calc_proto(coef,T_gas_opt,  5.1, pi_i).p_spec)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 
 # Добавляем названия и легенду
@@ -159,7 +158,7 @@ res = lab.calc_opt_params(engine, coef)
 
 y.clear()
 plt.figure(figsize=(15, 10))
-
+print(f"start plot l_free m:{opt_m}")
 for pi_i in Pik_full:
     y.append(lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).l_free_energy)
 plt.plot(Pik_full, y, label='opt', color='blue', linewidth=1) # Рисуем линию с меткой и цветом # Рисуем линию с меткой и цветом
@@ -169,7 +168,7 @@ for pi_i in Pik_full:
 plt.plot(Pik_full, y, label='proto', color='black', linewidth=1)
 y.clear()
 for pi_i in Pik_full:
-    y.append(lab.calc_proto(coef,T_gas_opt, 4.8, pi_i).l_free_energy)
+    y.append(lab.calc_proto(coef,T_gas_opt,  5.1, pi_i).l_free_energy)
 plt.plot(Pik_full, y, label='var', color='red', linewidth=1)
 # Добавляем названия и легенду
 plt.title('График свободной энергии') # Заголовок
@@ -185,20 +184,18 @@ plt.savefig('l-free.png', dpi=300, bbox_inches='tight')
 res = lab.calc_opt_params(engine,coef)
 res_string = "T\tm\t\tpi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n"
 for T_table in res:
-    res_string += (f"T:{T_table.t:.1f}\n")
+    res_string += f"T:{T_table.t:.1f}\n"
     for m_table in T_table.m:
-        res_string += (f"\tm:{m_table.m:.2f}\n")
+        res_string += f"\tm:{m_table.m:.2f}\n"
         for pi_table in m_table.pi_k_full:
-            res_string += (f"\t\t{pi_table.pi_k_full:.4f}|{pi_table.t_gas_full:.4f}|{pi_table.alpha:.4f}|{pi_table.x_opt:.4f}|{pi_table.k:.4f}|{pi_table.k_gas:.4f}|{pi_table.p_spec:.4f}|{pi_table.c_spec:.4f}|{pi_table.l_free_energy:.4f}\n")
+            res_string += f"\t\t{pi_table.pi_k_full:.4f}|{pi_table.t_gas_full:.4f}|{pi_table.alpha:.4f}|{pi_table.x_opt:.4f}|{pi_table.k:.4f}|{pi_table.k_gas:.4f}|{pi_table.p_spec:.4f}|{pi_table.c_spec:.4f}|{pi_table.l_free_energy:.4f}\n"
 print(res_string)
-p_cpec_var = 0
+p_cpec_var = 99999999
 variant = {}
-for pi_i in Pik_full:
-    temp = lab.calc_proto(coef,T_gas_opt, opt_m, pi_i).p_spec
-    if temp >= p_cpec_var:
-        variant = lab.calc_proto(coef,T_gas_opt, opt_m, pi_i)
-        p_cpec_var = temp
+
+variant = lab.calc_proto(coef,T_gas_opt, 5.1, opt_pi)
+
 with open("variant.txt", "w") as file:
-    file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{variant.t_gas_full:.4f}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
+    file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{opt_pi:.4f}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
 with open("results.txt", "w") as file:  
     file.write(res_string)  

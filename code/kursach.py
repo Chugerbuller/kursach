@@ -506,7 +506,25 @@ def calculate_eta_c(sigma_bx, pi_k_star, k, eta_k_star):#норм
 
     return numerator / denominator
 
+def calc_eta_e(L_CB, q_T, eta_Gamma, H_u):
+    """
+    Вычисляет ηe по формуле:
+    ηe = L_CB / (q_T * ηΓ * H_u)
 
+    Параметры:
+    L_CB (float): Полезная мощность (Вт, Дж/с и т.п.)
+    q_T (float): Расход топлива
+    eta_Gamma (float): Коэффициент ηΓ
+    H_u (float): Низшая теплота сгорания топлива
+
+    Возвращает:
+    float: Значение ηe (эффективность)
+    """
+    if q_T == 0 or eta_Gamma == 0 or H_u == 0:
+        raise ValueError("Значения q_T, ηΓ и H_u должны быть ненулевыми.")
+    
+    eta_e = L_CB / (q_T * eta_Gamma * H_u)
+    return eta_e
 
 def calculate_pi_t_star(sigma_bx, pi_k_star, sigma_kc, sigma_1, pi_c_star):#норм
     return (sigma_bx * pi_k_star * sigma_kc * sigma_1) / pi_c_star
