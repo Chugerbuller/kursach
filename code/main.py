@@ -196,6 +196,6 @@ variant = {}
 variant = lab.calc_proto(coef,T_gas_opt, 5.1, opt_pi)
 
 with open("variant.txt", "w") as file:
-    file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{opt_pi:.4f}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
+    file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{opt_pi:.4f}|{variant.T_k}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
 with open("results.txt", "w") as file:  
     file.write(res_string)  

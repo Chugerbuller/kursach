@@ -28,7 +28,7 @@ class Table_pi_k_full:
         c_spec,
         l_free_energy,
         eff_comp,
-        eff
+        T_k,
     ):
         super().__init__()
         self.pi_k_full = pi_k_full
@@ -41,7 +41,7 @@ class Table_pi_k_full:
         self.c_spec = c_spec
         self.l_free_energy = l_free_energy
         self.eff_comp = eff_comp
-        self.eff = eff
+        self.T_k = T_k
 
 def calc_opt_params(engine, coef):
     t_array = []
@@ -140,7 +140,6 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                     coef["effk_fan_full"],
                 )
     c_spec = kurs.calculate_c_spec(q_T, coef["ksi_take"], m_i, p_spec)
-    eff = kurs.calc_eta_e(L_free,q_T,coef["effk_gas"],combustion_props['Hu'])
     return Table_pi_k_full(
                         Pik_full_i,
                         T_gas_full_i,
@@ -151,6 +150,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         p_spec,
                         c_spec,
                         L_free,
-                        comp_eff,eff
+                        comp_eff,
+                        T_k
                     )
                 
