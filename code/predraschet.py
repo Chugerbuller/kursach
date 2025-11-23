@@ -126,7 +126,7 @@ plt.legend() # Показываем легенду
 
 # Самое важное: сохраняем график в файл
 # dpi (dots per inch) отвечает за качество картинки
-plt.savefig('c-spec.png', dpi=300, bbox_inches='tight')
+plt.savefig('../diagrams/c-spec.png', dpi=300, bbox_inches='tight')
 
 y.clear()
 for pi_i in Pik_full:
@@ -152,7 +152,7 @@ plt.legend() # Показываем легенду
 
 # Самое важное: сохраняем график в файл
 # dpi (dots per inch) отвечает за качество картинки
-plt.savefig('p-spec.png', dpi=300, bbox_inches='tight')
+plt.savefig('../diagrams/p-spec.png', dpi=300, bbox_inches='tight')
 print()
 res = lab.calc_opt_params(engine, coef)
 
@@ -179,7 +179,7 @@ plt.legend() # Показываем легенду
 
 # Самое важное: сохраняем график в файл
 # dpi (dots per inch) отвечает за качество картинки
-plt.savefig('l-free.png', dpi=300, bbox_inches='tight')
+plt.savefig('../diagrams/l-free.png', dpi=300, bbox_inches='tight')
 
 res = lab.calc_opt_params(engine,coef)
 res_string = "T\tm\t\tpi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n"
@@ -188,14 +188,14 @@ for T_table in res:
     for m_table in T_table.m:
         res_string += f"\tm:{m_table.m:.2f}\n"
         for pi_table in m_table.pi_k_full:
-            res_string += f"\t\t{pi_table.pi_k_full:.4f}|{pi_table.t_gas_full:.4f}|{pi_table.alpha:.4f}|{pi_table.x_opt:.4f}|{pi_table.k:.4f}|{pi_table.k_gas:.4f}|{pi_table.p_spec:.4f}|{pi_table.c_spec:.4f}|{pi_table.l_free_energy:.4f}\n"
+            res_string += f"\t\tPik*:{pi_table.pi_k_full:.4f}|Tg*:{pi_table.t_gas_full:.4f}|Alpha:{pi_table.alpha:.4f}|Xopt:{pi_table.x_opt:.4f}|k:{pi_table.k:.4f}|kgas:{pi_table.k_gas:.4f}|Pspec:{pi_table.p_spec:.4f}|Cspec:{pi_table.c_spec:.4f}|Free energy:{pi_table.l_free_energy:.4f}\n"
 print(res_string)
 p_cpec_var = 99999999
 variant = {}
 
 variant = lab.calc_proto(coef,T_gas_opt, 5.1, opt_pi)
 
-with open("variant.txt", "w") as file:
+with open("../calcs/variant.txt", "w") as file:
     file.write(f"T|m|pi|T*|a|Xopt|k|k_gas|P_cpec|C_cpec|L_free\n{T_gas_opt:.4f}|{opt_m:.4f}|{opt_pi:.4f}|{variant.T_k}|{variant.alpha:.4f}|{variant.x_opt:.4f}|{variant.k:.4f}|{variant.k_gas:.4f}|{variant.p_spec:.4f}|{variant.c_spec:.4f}|{variant.l_free_energy:.4f}\n")
-with open("results.txt", "w") as file:  
+with open("../calcs/results.txt", "w") as file:  
     file.write(res_string)  

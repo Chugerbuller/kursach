@@ -19,7 +19,7 @@ def get_cp(T1, T2, poly):
     Возвращает:
     cp - средняя теплоемкость воздуха [Дж/(кг·К)]
     """
-    R=287.0
+    R = 287.0
     n = len(poly)
     cp = 0
     
@@ -32,6 +32,30 @@ def get_cp(T1, T2, poly):
     k = cp/cv
     return {"cp": cp, "cv": cv, "k": k}
 
+def get_cp_component(T1, T2, poly, R):
+    """
+    Вычисляет среднюю теплоемкость воздуха в заданном температурном диапазоне.
+    
+    Параметры:
+    T1 - начальная температура [K]
+    T2 - конечная температура [K]
+    
+    Возвращает:
+    cp - средняя теплоемкость воздуха [Дж/(кг·К)]
+    """
+    n = len(poly)
+    cp = 0
+    
+    for i in range(n):
+        power = n - i - 1
+        cp += poly[i] * (T2**(power + 1) - T1**(power + 1)) / (power + 1)
+    
+    cp = cp / (T2 - T1)
+    cv = cp - R
+    k = cp/cv
+    return {"cp": cp, "cv": cv, "k": k}
+
+
 def get_cp_real(T):
     poly =[-3.2689e-7, 7.4230e-4, -3.1280e-1, 1042.39]
 
@@ -43,7 +67,7 @@ def get_cp2(T, poly):
     Вычисляет истинную теплоемкость воздуха заданной температуры.
     
     Параметры:
-    T - теплоёмкость [K]
+    T - температура [K]
     
     Возвращает:
     cp - истинная теплоемкость воздуха [Дж/(кг·К)]
@@ -54,7 +78,30 @@ def get_cp2(T, poly):
     
     for i in range(n):
         power = n - i - 1
-        cp += poly[i] * math.pow(T, power)
+        cp += poly[i] * T ** power
+    
+    cp = cp
+    cv = cp - R
+    k = cp/cv
+    return {"cp": cp, "cv": cv, "k": k}
+
+def get_cp3(T, poly, R):
+    """
+    Вычисляет истинную теплоемкость компонента заданной температуры.
+    
+    Параметры:
+    T - температура [K]
+    
+    Возвращает:
+    cp - истинная теплоемкость компонента [Дж/(кг·К)]
+    """
+
+    n = len(poly)
+    cp = 0
+    
+    for i in range(n):
+        power = n - i - 1
+        cp += poly[i] * T ** power
     
     cp = cp
     cv = cp - R
@@ -147,10 +194,15 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
     alpha = 1.0  # начальный коэффициент избытка воздуха
     iter_count = 0
     converged = False
-    cp_CO2 = get_cp(TK, TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75])['cp']
-    cp_H2O = get_cp(TK, TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53])['cp']
-    cp_N2 = get_cp(TK, TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68])['cp']
-    cp_O2 = get_cp(TK, TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897])['cp']
+    cp_CO2 = get_cp_component(TK, TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75], R_CO2)['cp']
+    cp_H2O = get_cp_component(TK, TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53], R_H2O)['cp']
+    cp_N2 = get_cp_component(TK, TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68], R_N2)['cp']
+    cp_O2 = get_cp_component(TK, TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897], R_O2)['cp']
+    
+    #cp_CO2 = get_cp(TK, TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75])['cp']
+    #cp_H2O = get_cp(TK, TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53])['cp']
+    #cp_N2 = get_cp(TK, TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68])['cp']
+    #cp_O2 = get_cp(TK, TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897])['cp']
     
     while abs(k - k_old) > tol and iter_count < max_iter:
         # Вычисляем массовые доли компонентов
@@ -210,7 +262,7 @@ def calculate_combustion_properties(gC, gH, TK, TG, effG, max_iter=1000, tol=1e-
         "L0": L0,
     }
     
-def get_cpmix(gC, gH, TG, alpha, max_iter=1000, tol=1e-16):#норм
+def get_cpgas(gC, gH, TG, alpha, max_iter=1000, tol=1e-16):#норм
     
     # 1. Вычисляем удельные газовые постоянные
     R_CO2 = 8314.2 / (12 + 16 * 2)  # для углекислого газа
@@ -221,14 +273,14 @@ def get_cpmix(gC, gH, TG, alpha, max_iter=1000, tol=1e-16):#норм
     L0 = (8 / 3 * gC + 8 * gH) / 0.23  # кг/кг
 
     # 2. Итерационный процесс
-    k_old = 1.4  # начальное предположение
-    k = 0.0
+    k_old = 0.0  # начальное предположение
+    k = 1.4
     iter_count = 0
     converged = False
-    cp_CO2 = get_cp2(TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75])['cp']
-    cp_H2O = get_cp2(TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53])['cp']
-    cp_N2 = get_cp2(TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68])['cp']
-    cp_O2 = get_cp2(TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897])['cp']
+    cp_CO2 = get_cp3(TG, [-5.2735e-11, 3.9194e-7, -1.1213e-3, 1.5466, 471.75], R_CO2)['cp']
+    cp_H2O = get_cp3(TG, [8.2542e-11, -5.3927e-7, 1.0936e-3, -1.9361e-1,1842.53], R_H2O)['cp']
+    cp_N2 = get_cp3(TG, [-3.5780e-14, 2.9022e-10, -8.8233e-7, 1.1757e-3,-4.7731e-1,1095.68], R_N2)['cp']
+    cp_O2 = get_cp3(TG, [-4.7303e-14, 3.3563e-10, -8.4931e-7, 8.5606e-4, -1.0201e-1, 897], R_O2)['cp']
     
     while abs(k - k_old) > tol and iter_count < max_iter:
         # Вычисляем массовые доли компонентов
@@ -281,7 +333,7 @@ def get_cpmix(gC, gH, TG, alpha, max_iter=1000, tol=1e-16):#норм
         "history": history,
     }
     
-def get_cpmix_ave(gC, gH, T1, T2, alpha, max_iter=1000, tol=1e-16):#норм
+def get_cpgas_ave(gC, gH, T1, T2, alpha, max_iter=1000, tol=1e-16):#норм
     
     # 1. Вычисляем удельные газовые постоянные
     R_CO2 = 8314.2 / (12 + 16 * 2)  # для углекислого газа
@@ -351,6 +403,46 @@ def get_cpmix_ave(gC, gH, T1, T2, alpha, max_iter=1000, tol=1e-16):#норм
         "converged": converged,
         "history": history,
     }
+    
+def get_cpmix(T, alpha, ksiTake, q_T, gAirBack):
+    gC = 0.86
+    gH = 0.14
+    g1 = (1 - ksiTake + q_T)
+    g2 = gAirBack
+    cpGas = get_cpgas(gC, gH, T, alpha, max_iter=1000, tol=1e-16)["cp_mix"]
+    cpAir = get_cp_real(T)["cp"]
+    RGas = get_cpgas(gC, gH, T, alpha, max_iter=1000, tol=1e-16)["R_mix"]
+    cpMix = (cpGas * g1 + cpAir * g2) / (g1 + g2)
+    RMix = (RGas * g1 + 287 * g2) / (g1 + g2)
+    cvMix = cpMix - RMix
+    kMix = cpMix/cvMix
+    
+    return {
+        "k": kMix, 
+        "cp_mix": cpMix,
+        "R_mix": RMix,
+        "cv_mix": cvMix,
+    }
+    
+def get_cpmix_ave(T1, T2, alpha, ksiTake, q_T, gAirBack):
+    gC = 0.86
+    gH = 0.14
+    g1 = (1 - ksiTake + q_T)
+    g2 = gAirBack
+    cpGas = get_cpgas_ave(gC, gH, T1, T2, alpha)["cp_mix"]
+    cpAir = get_cp_air(T1, T2)["cp"]
+    RGas = get_cpgas(gC, gH, T1, T2, alpha)["R_mix"]
+    cpMix = (cpGas * g1 + cpAir * g2) / (g1 + g2)
+    RMix = (RGas * g1 + 287 * g2) / (g1 + g2)
+    cvMix = cpMix - RMix
+    kMix = cpMix/cvMix
+    
+    return {
+        "k": kMix, 
+        "cp_mix": cpMix,
+        "R_mix": RMix,
+        "cv_mix": cvMix,
+    }
 
 
 def get_corr_parameters(TG, TK, cpGasG, cpAirK, RGas, alpha, ksiTake, q_T, gAirBack):
@@ -362,8 +454,8 @@ def get_corr_parameters(TG, TK, cpGasG, cpAirK, RGas, alpha, ksiTake, q_T, gAirB
     g1 = (1 - ksiTake + q_T)
     g2 = gAirBack
     
-    while abs(TGcorr - TGcorrold) > 1e-16 and iter_count < 100:
-        cpGas = get_cpmix(gC, gH, TGcorr, alpha, max_iter=1000, tol=1e-16)["cp_mix"]
+    while abs(TGcorr - TGcorrold) > 1e-16 and iter_count < 1000:
+        cpGas = get_cpgas(gC, gH, TGcorr, alpha, max_iter=1000, tol=1e-16)["cp_mix"]
         cpAir = get_cp_real(TGcorr)["cp"]
         cpMix = (cpGas * g1 + cpAir * g2) / (g1 + g2)
         RMix = (RGas * g1 + 287 * g2) / (g1 + g2)
@@ -394,7 +486,7 @@ def calculate_fan_temperature(TB, LB, effB, R=287.0):
         TB2old = TB2
         piB =  math.pow((effB * LB / cpAir / TB + 1),(kAir / (kAir - 1)))
         if piB > 1.95:
-            piB = 1.7
+            piB = 1,7
         TB2 = TB * (1 + (math.pow(piB,((kAir - 1) / kAir)) - 1) / effB)
 
         iter_count += 1
@@ -427,8 +519,8 @@ def calc_LK(TB, TK, piK, etaK):
     
     return {"LK":LK}
 
-def calc_LKND(z, LK, LB2, m):
-    LKND = z * (LK + m * LB2) - m * LB2
+def calc_LKND(z, LK, LB2, m, etaK, etaB, etaKND):
+    LKND = (z * (LK * etaK + m * LB2 * etaB) - m * LB2 * etaB) / etaKND
     
     return {"LKND":LKND}
 
@@ -458,7 +550,7 @@ def calc_LKVD(TKND, TK, piKVD):
     LKVD_adiabatic = cpAir * TKND * (math.pow(piKVD,(kAir-1)/kAir) - 1)
     return {"LKVD_adiabatic":LKVD_adiabatic}
 
-def calc_LTurb(T1, alpha, LTurb, etaTurb):
+def calc_LTurb(T1, alpha, LTurb, etaTurb, ksiTake, q_T, gAirBack):
     TTurbold = 0.0
     TTurb = 1500.0
     PiTurb = 5
@@ -466,8 +558,8 @@ def calc_LTurb(T1, alpha, LTurb, etaTurb):
     
     while abs(TTurb - TTurbold) > 1e-16 and iter_count < 100:
         TTurbold = TTurb
-        cp = get_cpmix_ave(0.86, 0.14, T1, TTurb, alpha)["cp_mix"]
-        k = get_cpmix_ave(0.86, 0.14, T1, TTurb, alpha)["k"]
+        cp = get_cpmix_ave(T1, TTurb, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
+        k = get_cpmix_ave(T1, TTurb, alpha, ksiTake, q_T, gAirBack)["k"]
         parent = (1 - math.pow(PiTurb, (1 - k) / k) )
         TTurb = T1 * (1 - parent * etaTurb)
         PiTurb = math.pow((1 - LTurb / (etaTurb * cp * T1)), k / (1 - k))
@@ -479,13 +571,13 @@ def calc_LTurb(T1, alpha, LTurb, etaTurb):
     }
     
 def GDF_pressure(k, l, phi):
-    parent = phi * l * l * (k - 1)/(k + 1)
-    GDF_P = math.pow(1 - parent, k / (k - 1))
+    parent = 1 - phi * phi * l * l * (k - 1)/(k + 1)
+    GDF_P = math.pow(parent, k / (k - 1))
     return {"GDF_P": GDF_P}
 
-def calc_cc1_docr(TC1, T0, Pi, Phi, alpha):
-    cp = get_cpmix_ave(0.86, 0.14, TC1, T0, alpha)["cp_mix"]
-    k = get_cpmix_ave(0.86, 0.14, TC1, T0, alpha)["k"]
+def calc_cc1_docr(TC1, T0, Pi, Phi, alpha, ksiTake, q_T, gAirBack):
+    cp = get_cpmix_ave(TC1, T0, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
+    k = get_cpmix_ave(TC1, T0, alpha, ksiTake, q_T, gAirBack)["k"]
     cc1_docr = Phi * math.sqrt(2 * cp * TC1 * (1 - math.pow(Pi, (1 - k) / k)))
     
     return{"cc1_docr": cc1_docr}
