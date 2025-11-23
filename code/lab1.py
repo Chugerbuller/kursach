@@ -27,7 +27,8 @@ class Table_pi_k_full:
         p_spec,
         c_spec,
         l_free_energy,
-        eff_comp
+        eff_comp,
+        T_k,
     ):
         super().__init__()
         self.pi_k_full = pi_k_full
@@ -40,6 +41,7 @@ class Table_pi_k_full:
         self.c_spec = c_spec
         self.l_free_energy = l_free_energy
         self.eff_comp = eff_comp
+        self.T_k = T_k
 
 def calc_opt_params(engine, coef):
     t_array = []
@@ -148,6 +150,7 @@ def calc_proto(coef, T_gas_full_i, m_i, Pik_full_i):
                         p_spec,
                         c_spec,
                         L_free,
-                        comp_eff
+                        comp_eff,
+                        T_k
                     )
                 
