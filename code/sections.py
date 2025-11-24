@@ -44,7 +44,7 @@ z = 0.6
 
 cB   = 220.0
 cBX  = cB - 45.0
-cLPC = 180.0
+cKND = 180.0
 cB2  = cB - 17.5
 cHPC = 155.0
 cG   = 135.0
@@ -181,7 +181,7 @@ def main():
     print("\n\tcpLPC* =",cpLPC,"\n\tkLPC* =",kLPC)
     PKNDfull = PBfull * PiKND_full
     print("\tPKND* =",PKNDfull)
-    TKND = TKNDfull - cLPC *cLPC / 2 / cpLPC
+    TKND = TKNDfull - cKND *cKND / 2 / cpLPC
     print("\tTKND =",TKND)
     PKND = PKNDfull * math.pow(TKNDfull / TKND, kLPC / (1 - kLPC))
     print("\tPKND =",PKND)
@@ -435,7 +435,7 @@ def main():
         plt.axvline(x=x_i, color='black', linestyle='--')
         
     thir_axes = axes[2]
-    y2 = [0,cBX,cB,cLPC,cHPC,cG,cTVD,cTND,cc1]
+    y2 = [0,cBX,cB,cKND,cHPC,cG,cTVD,cTND,cc1]
     thir_axes.set_xticks(x)
     thir_axes.set_xticklabels(labels, rotation=0, ha='center')
     thir_axes.plot(x, y2, 'black')
@@ -458,35 +458,6 @@ def main():
         # Исходные параметры
     F_B = Gair / (cB * roB)        # площадь тракта вентилятора
     d_vt_B = 0.35      # относительный диаметр втулки вентилятора
-    #по корпусу
-        # Диаметр корпуса
-        #D_B = math.sqrt(4 * F_B / (math.pi * (1 - d_vt_B**2)))
-
-        # Диаметр втулки
-        #D_vt_B = D_B * d_vt_B
-
-        # Средний диаметр
-        #D_cp_B = (D_B + D_vt_B) / 2
-
-        # Высота первой лопатки
-        #h_B = (D_B - D_vt_B) / 2
-        # Постоянный диаметр втулки
-        #D_vt_B = math.sqrt(4 * F_B / (math.pi * (1/d_vt_B**2 - 1)))
-
-        # Диаметр корпуса
-        #D_B = D_vt_B / d_vt_B
-
-        # Средний диаметр
-        #D_cp_B = (D_B + D_vt_B) / 2
-
-        # Высота лопатки
-        #h_B = (D_B - D_vt_B) / 2
-        
-    # Постоянный средний диаметр
-    #D_cp_B = const  # Нужно задать значение константы
-
-    # Вычисляем средний диаметр (сечение - кольцо)
-
 # Средний диаметр вентилятора
     D_cpB = math.sqrt((F_B * (1 + d_vt_B)) / (math.pi * (1 - d_vt_B)))
     # Диаметр корпуса и втулки вентилятора
@@ -510,7 +481,7 @@ def main():
     # Высота канала второго контура или высота лопатки НА вентилятора
     h_B2 = (D_V_rzd - D_rzd) / 2
     # Площадь кольцевого сечения КНД
-    F_knd = Gair1 / (cLPC * roKND)
+    F_knd = Gair1 / (cKND * roKND)
     # Толщина разделителя
     b_rzd = 0.07 * h_SA_rzd  # ... или 0.1 * h_SA_red
     #----------------------------------------------------------------------------
@@ -532,32 +503,33 @@ def main():
         #h_SA_rzd = (D_V_rzd - D_vt_rzd) / 2
         # Площадь сечения канала второго контура
     #----------------------------------------------------------------------------
-    # Высота лопатки на входе в канал первого контура
-    h_vknd = (D_rzd - D_vt_rzd) / 2 - b_rzd
     # Внешний диаметр канала первого контура
+    F1 = Gair1 / (cB2 * roB2)
     D_vknd = D_rzd - 2 * b_rzd
     # Втулочный диаметр канала первого контура
-    D_vt_vknd = D_vknd - 2 * h_vknd
+    D_vt_vknd = math.sqrt(D_vknd ** 2 - (4 * F1 / math.pi))
     # Средний диаметр канала первого контура
     D_cp_vknd = (D_vknd + D_vt_vknd) / 2
-    D_cp_knd = D_cp_vknd #!!!!!!!!!!!!!НЕУВЕРЕН
+    # Высота лопатки на входе в канал первого контура
+    h_vknd = (D_vknd - D_vt_vknd) / 2
+    
     # Диаметр корпуса и втулки на выходе из КНД
-    D_vt_knd = D_cp_knd - (F_knd / (math.pi * D_cp_knd))
-    D_knd = 2 * D_cp_knd - D_vt_knd
+#КНД
+    D_cp_knd = D_cp_vknd #!!!!!!!!!!!!!НЕУВЕРЕН
+    D_vt_knd = D_cp_knd - (F_knd / math.pi / D_cp_knd)
+    D_knd = (2 * D_cp_knd - D_vt_knd)
     # Высота лопатки последнего СА КНД
     h_knd = (D_knd - D_vt_knd) / 2
     # Проверка допустимости геометрии КНД
     # 1. Проверка минимальной длины лопатки
     min_blade_length = 0.012  # 12 мм в метрах
-    desired_blade_length = 0.018  # 18 мм в метрах
     is_min_length_ok = h_knd >= min_blade_length
-    is_desired_length_ok = h_knd >= desired_blade_length
     # 2. Проверка относительного диаметра втулки
     relative_hub_diameter = D_vt_knd / D_knd
     max_relative_hub_diameter = 0.92  # максимально допустимое значение
-    min_relative_hub_diameter = 0.85  # минимальное рекомендуемое значение
-    is_hub_diameter_ok = (relative_hub_diameter <= max_relative_hub_diameter and 
-                        relative_hub_diameter >= min_relative_hub_diameter)
+    min_relative_hub_diameter = 0.82  # минимальное рекомендуемое значение
+    is_hub_diameter_ok = (relative_hub_diameter <= 0.82)
+    
 
     # Общая проверка геометрии КНД
     is_knd_geometry_valid = is_min_length_ok and is_hub_diameter_ok
@@ -582,9 +554,9 @@ def main():
     h_K = (D_K - D_vt_K) / 2
     ##ТВД-ТВД
     #Dср твд / h твд = 13
-    D_cp_H = 13
+    D_cp_H = 15
     F_tvd = Gair1 * (1 + q_T - v_take) / (cTVD * roTVD)
-    h_tvd = math.sqrt((4 * F_tvd) / (math.pi*((D_cp_H + 1)**2 - (D_cp_H - 1)**2)))
+    h_tvd = math.sqrt((4 * F_tvd) / (math.pi*(math.pow((D_cp_H + 1),2) - math.pow((D_cp_H - 1),2))))
     D_tvd = h_tvd * (D_cp_H + 1)
     Dv_ttvd = h_tvd * (D_cp_H - 1)
     Dcp_tvd = D_cp_H * h_tvd
@@ -600,13 +572,15 @@ def main():
     Dvt_tnd = Dcp_tnd - (F_tnd / (math.pi * Dcp_tnd))
     Dtnd = 2 * Dcp_tnd - Dvt_tnd
     h_tnd = (Dtnd - Dvt_tnd) / 2
+    turbine_check = 5.9 >= (h_tnd / h_tvd) >= 1.1 and Dcp_tnd / h_tnd
+        
     # C1-C1
     Fc1 = (Gair1 * (1 + q_T - ksiTake)) / (cc1 * roC1)
     Dc1 = math.sqrt(4 * Fc1 / math.pi)
     #вС2 надо сначала посчитать все остальное
     #C2-C2
-    #Fc2 = Gair2 / (cc2_docr * roC2)
-    # Dc2 = math.sqrt((4 * Fc2) / math.pi + Dvt_c2)
+    Fc2 = Gair2 / (cc2_docr * roC2)
+    ##Dc2 = math.sqrt((4 * Fc2) / math.pi + Dvt_c2)
     def printGeometry():
         print("=" * 50)
         print("РАСЧЕТ ГЕОМЕТРИИ ПРОТОЧНОЙ ЧАСТИ ГТД")
@@ -709,6 +683,7 @@ def main():
         print(f"Диаметр втулки Dvt_tnd: {Dvt_tnd:.4f} м")
         print(f"Внешний диаметр Dtnd: {Dtnd:.4f} м")
         print(f"Высота лопатки h_tnd: {h_tnd:.4f} м")
+        print(f"Геометрия ТНД корректна: {'ДА' if turbine_check else 'НЕТ'}")
 
         print("\n" + "=" * 30)
         print("СОПЛО ПЕРВОГО КОНТУРА (C1)")
@@ -720,7 +695,7 @@ def main():
         print("ПРОВЕРКИ ГЕОМЕТРИИ")
         print("=" * 50)
         print(f"КНД - мин. высота лопатки ({min_blade_length*1000:.0f} мм): {'СОБЛЮДЕНО' if is_min_length_ok else 'НЕ СОБЛЮДЕНО'}")
-        print(f"КНД - отн. диаметр втулки ({min_relative_hub_diameter}-{max_relative_hub_diameter}): {'СОБЛЮДЕНО' if is_hub_diameter_ok else 'НЕ СОБЛЮДЕНО'}")
+        print(f"КНД - отн. диаметр втулки ({min_relative_hub_diameter}-{max_relative_hub_diameter}): {'СОБЛЮДЕНО' if is_hub_diameter_ok else 'НЕ СОБЛЮДЕНО' }")
     printGeometry()
 def formArray(arr):
     res = []
