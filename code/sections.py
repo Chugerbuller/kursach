@@ -43,13 +43,13 @@ gAirBack     = 0.07
 z = 0.6
 
 cB   = 220.0
-cBX  = cB - 45.0
+cBX  = cB - 45.0 #45
 cKND = 180.0
 cB2  = cB - 17.5
-cHPC = 155.0
-cG   = 135.0
-MHPT = 0.6
-MLPT = 0.325
+cK = 155.0
+cG   = 155.0 # 135
+MHPT = 0.5 # 0.6
+MLPT = 0.5 # 0.325
 dB = (0.30 + 0.65) / 2
 dHPC = (0.50 + 0.65) / 2
 
@@ -61,7 +61,7 @@ T0           = 288.0
 ro0          = P0 / (287.0 * T0)
 
 #ПРЕДРАСЧЁТ
-m = 6.7
+m = 6.7 # 
 TGfull = 1696.656
 TKfull = 805.1776
 PiK_full = 26.2500
@@ -197,7 +197,7 @@ def main():
     print("\tPK* =",PKfull)
     LKVD = LKVD_adiabatic / effkHpcFull
     print("\tLKVD =",LKVD)
-    TK = TKfull - cHPC *cHPC / 2 / cpHPC
+    TK = TKfull - cK *cK / 2 / cpHPC
     print("\tTK =",TK)
     PK = PKfull * math.pow(TKfull / TK, kHPC / (1 - kHPC))
     print("\tPK =",PK)
@@ -435,7 +435,7 @@ def main():
         plt.axvline(x=x_i, color='black', linestyle='--')
         
     thir_axes = axes[2]
-    y2 = [0,cBX,cB,cKND,cHPC,cG,cTVD,cTND,cc1]
+    y2 = [0,cBX,cB,cKND,cK,cG,cTVD,cTND,cc1]
     thir_axes.set_xticks(x)
     thir_axes.set_xticklabels(labels, rotation=0, ha='center')
     thir_axes.plot(x, y2, 'black')
@@ -456,53 +456,49 @@ def main():
     D_BX = math.sqrt(4 * F_BX / math.pi)
     
         # Исходные параметры
-    F_B = Gair / (cB * roB)        # площадь тракта вентилятора
-    d_vt_B = 0.35      # относительный диаметр втулки вентилятора
-# Средний диаметр вентилятора
-    D_cpB = math.sqrt((F_B * (1 + d_vt_B)) / (math.pi * (1 - d_vt_B)))
-    # Диаметр корпуса и втулки вентилятора
-    D_B = (2 * D_cpB) / (1 + d_vt_B)
-    D_vtB = D_B * d_vt_B
-    # Высота первой лопатки вентилятора
-    h_B = (D_B - D_vtB) / 2
+# Вентилятор
+    var_calc_B = 0
+    Dcp_B = 0.0
+    Dvt_B = 0.0
+    d_vt_B = 0.35
+    F_B = Gair / (cB * roB)  
+    if var_calc_B == 0:
+        Dvt_B = math.sqrt(4 * F_B / (math.pi * (1 /(d_vt_B * d_vt_B) - 1)))
+        D_B = Dvt_B / d_vt_B
+        Dcp_B = (D_B + Dvt_B) / 2
+    elif var_calc_B == 1:
+     # относительный диаметр втулки вентилятора
+        Dcp_B = math.sqrt((F_B * (1 + d_vt_B)) / (math.pi * (1 - d_vt_B)))
+        # Диаметр корпуса и втулки вентилятора
+        D_B = (2 * Dcp_B) / (1 + d_vt_B)
+        Dvt_B = D_B * d_vt_B
+    elif var_calc_B == 2:
+        D_B = math.sqrt(4 * F_B / (math.pi * (1 - d_vt_B * d_vt_B)))
+        Dvt_B = D_B * d_vt_B
+        Dcp_B = (D_B + Dvt_B) / 2
+    h_B = (D_B - Dvt_B) / 2
+#Разделитель
+    #Внешний
+    #
     # Площадь общего сечения перед разделителем (сечение P3J)
     F_rzd = Gair / (cB2 * roB2)
     # Постоянный средний диаметр
-    D_cp_rzd = D_cpB  # const
+    D_cp_rzd = Dcp_B  # const
     # Диаметр корпуса и втулки в сечении разделителя
     D_vt_rzd = D_cp_rzd - (F_rzd / (math.pi * D_cp_rzd))
     D_V_rzd = 2 * D_cp_rzd - D_vt_rzd
     # Высота лопатки СА вентилятора (или мнимая высота)
     h_SA_rzd = (D_V_rzd - D_vt_rzd) / 2
+    #внутренний
+    #
     # Площадь сечения канала второго контура
     F_B2 = Gair2 / (cB2 * roB2)
     # Диаметр разделителя
     D_rzd = math.sqrt(D_V_rzd**2 - (4 * F_B2 / math.pi))
     # Высота канала второго контура или высота лопатки НА вентилятора
     h_B2 = (D_V_rzd - D_rzd) / 2
-    # Площадь кольцевого сечения КНД
-    F_knd = Gair1 / (cKND * roKND)
     # Толщина разделителя
-    b_rzd = 0.07 * h_SA_rzd  # ... или 0.1 * h_SA_red
-    #----------------------------------------------------------------------------
-        # Площадь общего сечения за вентилятором перед разделителем (сечение РЗД)
-        #F_RZD = G_B / (c_B2 * rho_B2)
-        # Случай 1: Постоянный диаметр корпуса
-        #D_B_REA = const  # Заданное постоянное значение диаметра корпуса
-        #D_vt_REA = math.sqrt(D_B_REA**2 - (4 * F_REA / math.pi))
-        #D_cp_REA = (D_B_REA + D_vt_REA) / 2
-        # Случай 2: Постоянный диаметр втулки
-        #D_vt_REA = D_vt_V  # Равен диаметру втулки вентилятора
-        #D_B_REA = math.sqrt(D_vt_REA**2 + (4 * F_REA / math.pi))
-        # Постоянный средний диаметр
-        #D_cp_rzd = D_cp_V  # Равен среднему диаметру вентилятора
-        # Диаметр корпуса и втулки в сечении разделителя
-        #D_vt_rzd = D_cp_rzd - (F_rzd / (math.pi * D_cp_rzd))
-        #D_V_rzd = 2 * D_cp_rzd - D_vt_rzd
-        # Высота лопатки СА вентилятора, либо мнимая высота
-        #h_SA_rzd = (D_V_rzd - D_vt_rzd) / 2
-        # Площадь сечения канала второго контура
-    #----------------------------------------------------------------------------
+    b_rzd = 0.085 * h_SA_rzd  # ... или 0.1 * h_SA_red
     # Внешний диаметр канала первого контура
     F1 = Gair1 / (cB2 * roB2)
     D_vknd = D_rzd - 2 * b_rzd
@@ -512,10 +508,11 @@ def main():
     D_cp_vknd = (D_vknd + D_vt_vknd) / 2
     # Высота лопатки на входе в канал первого контура
     h_vknd = (D_vknd - D_vt_vknd) / 2
-    
     # Диаметр корпуса и втулки на выходе из КНД
 #КНД
-    D_cp_knd = D_cp_vknd #!!!!!!!!!!!!!НЕУВЕРЕН
+    # Площадь кольцевого сечения КНД
+    F_knd = Gair1 / (cKND * roKND)    
+    D_cp_knd = D_cp_vknd
     D_vt_knd = D_cp_knd - (F_knd / math.pi / D_cp_knd)
     D_knd = (2 * D_cp_knd - D_vt_knd)
     # Высота лопатки последнего СА КНД
@@ -533,18 +530,18 @@ def main():
 
     # Общая проверка геометрии КНД
     is_knd_geometry_valid = is_min_length_ok and is_hub_diameter_ok
-    ##вКВД-вКВД
-    # Постоянный внешний диаметр канала КВД
-    d_vt_kvd = 0.35 #!!!!!!!!!!!!!НЕУВЕРЕН
-    D_vkvd = math.sqrt((4 * F_knd) / (math.pi * (1 - d_vt_kvd)))
+##вКВД-вКВД
+    F_vkvd = F_knd #Так как пи не равны
+    d_vt_kvd = 0.6 #!!!!!!!!!!!!!НЕУВЕРЕН
+    D_vkvd = math.sqrt((4 * F_vkvd) / (math.pi * (1 - d_vt_kvd * d_vt_kvd)))
     # Диаметр втулки КВД
     D_vt_vkvd = D_vkvd * d_vt_kvd
     # Средний диаметр КВД
     D_cp_vkvd = (D_vkvd + D_vt_vkvd) / 2
     h_vkvd = (D_vkvd - D_vt_vkvd) / 2
-    #K-K
+#K-K
     # Площадь сечения на выходе из КВД
-    F_K = Gair1 / (cHPC * roK) #!!!!!!!!!! почему cHPC а не cK вот roK норм
+    F_K = Gair1 / (cK * roK) #!!!!!!!!!! почему cK а не cK вот roK норм
     # Постоянный внешний диаметр канала
     D_K = D_vkvd  # const
     # Диаметр втулки на выходе из КВД
@@ -552,29 +549,55 @@ def main():
     # Средний диаметр на выходе из КВД
     D_cp_K = (D_K + D_vt_K) / 2
     h_K = (D_K - D_vt_K) / 2
-    ##ТВД-ТВД
+    #Проверка
+    compressor_blade_check = h_K >= 0.015
+    rel_vt_vkvd_check = (D_vt_vkvd / D_vkvd) >= 0.5
+    rel_vt_K_check = 0.92 >= (D_vt_K / D_K) >= 0.87
+    rel_blade_check = 6.25 >= (h_vknd / h_K) >= 2
+    compressor_check = (compressor_blade_check
+                        and rel_vt_vkvd_check
+                        and rel_vt_K_check
+                        and rel_blade_check)
+##ТВД-ТВД
     #Dср твд / h твд = 13
-    D_cp_H = 15
+    D_cp_H = 11
     F_tvd = Gair1 * (1 + q_T - v_take) / (cTVD * roTVD)
     h_tvd = math.sqrt((4 * F_tvd) / (math.pi*(math.pow((D_cp_H + 1),2) - math.pow((D_cp_H - 1),2))))
     D_tvd = h_tvd * (D_cp_H + 1)
-    Dv_ttvd = h_tvd * (D_cp_H - 1)
+    Dvt_tvd = h_tvd * (D_cp_H - 1)
     Dcp_tvd = D_cp_H * h_tvd
     # Площадь проходного сечения Г-Г (без учета возврата воздуха)
     F_g = (Gair1 * (1 + q_T - ksiTake)) / (cG * roG)
     D_g = D_tvd
-    Dvt_g = math.sqrt(D_g ** 2 - (4 * F_g) / math.pi)
+    Dvt_g = math.sqrt(D_g ** 2 - (4 * F_g / math.pi))
     Dcp_g = (D_g + Dvt_g) / 2
     h_g = (D_g - Dvt_g) / 2
-    #ТНД-ТНД
+    #Проверка ТВД
+    tvd_blade_check = 5.9 >= (h_tvd / h_g) >= 1.1
+#ТНД-ТНД
     F_tnd = Gair1 * (1 + q_T - v_take) / (cTND * roTND)
-    Dcp_tnd = Dcp_tvd
-    Dvt_tnd = Dcp_tnd - (F_tnd / (math.pi * Dcp_tnd))
-    Dtnd = 2 * Dcp_tnd - Dvt_tnd
-    h_tnd = (Dtnd - Dvt_tnd) / 2
-    turbine_check = 5.9 >= (h_tnd / h_tvd) >= 1.1 and Dcp_tnd / h_tnd
-        
-    # C1-C1
+    Dcp_tnd = 0.0
+    Dvt_tnd = 0.0
+    D_tnd = 0.0
+    var_calc_tnd = 0 # 0-вт,1-ср,2-корпус
+    if var_calc_tnd == 0:
+        Dvt_tnd = Dvt_tvd
+        D_tnd = math.sqrt(Dvt_tnd ** 2 + (4 * F_tnd / math.pi))
+        Dcp_tnd = (D_tnd + Dvt_tnd) / 2
+    elif var_calc_tnd == 1:
+        Dcp_tnd = Dcp_tvd
+        Dvt_tnd = Dcp_tnd - (F_tnd  / math.pi / Dcp_tnd)
+        D_tnd = 2 * Dcp_tnd - Dvt_tnd
+    elif var_calc_tnd == 2:
+        D_tnd = D_tvd
+        Dvt_tnd= math.sqrt(D_tnd ** 2 - (4 * F_tnd / math.pi))
+        Dcp_tnd = (D_tnd + Dvt_tnd) / 2 
+    h_tnd = (D_tnd - Dvt_tnd) / 2
+    #Проверка ТНД
+    tnd_blade_check = 5.9 >= (h_tnd / h_tvd) >= 1.1
+    rel_blade_tnd = 7.5 >= Dcp_tnd / h_tnd >= 2.7
+    turbine_check = tvd_blade_check and tnd_blade_check and rel_blade_check  
+# C1-C1
     Fc1 = (Gair1 * (1 + q_T - ksiTake)) / (cc1 * roC1)
     Dc1 = math.sqrt(4 * Fc1 / math.pi)
     #вС2 надо сначала посчитать все остальное
@@ -597,9 +620,9 @@ def main():
         print("=" * 30)
         print(f"Площадь тракта вентилятора F_B: {F_B:.4f} м²")
         print(f"Относительный диаметр втулки d_vt_B: {d_vt_B:.3f}")
-        print(f"Средний диаметр D_cpB: {D_cpB:.4f} м")
+        print(f"Средний диаметр Dcp_B: {Dcp_B:.4f} м")
         print(f"Диаметр корпуса D_B: {D_B:.4f} м")
-        print(f"Диаметр втулки D_vtB: {D_vtB:.4f} м")
+        print(f"Диаметр втулки Dvt_B: {Dvt_B:.4f} м")
         print(f"Высота первой лопатки h_B: {h_B:.4f} м")
 
         print("\n" + "=" * 30)
@@ -637,7 +660,7 @@ def main():
         print(f"Высота лопатки h_knd: {h_knd:.4f} м")
         print(f"Относительный диаметр втулки: {relative_hub_diameter:.3f}")
         print(f"Геометрия КНД корректна: {'ДА' if is_knd_geometry_valid else 'НЕТ'}")
-
+        
         print("\n" + "=" * 30)
         print("КВД - ВХОД (vKVD)")
         print("=" * 30)
@@ -663,7 +686,7 @@ def main():
         print(f"Отношение D_cp_H: {D_cp_H}")
         print(f"Высота лопатки h_tvd: {h_tvd:.4f} м")
         print(f"Внешний диаметр D_tvd: {D_tvd:.4f} м")
-        print(f"Диаметр втулки Dv_ttvd: {Dv_ttvd:.4f} м")
+        print(f"Диаметр втулки Dvt_tvd: {Dvt_tvd:.4f} м")
         print(f"Средний диаметр Dcp_tvd: {Dcp_tvd:.4f} м")
 
         print("\n" + "=" * 30)
@@ -681,7 +704,7 @@ def main():
         print(f"Площадь сечения F_tnd: {F_tnd:.4f} м²")
         print(f"Средний диаметр Dcp_tnd: {Dcp_tnd:.4f} м")
         print(f"Диаметр втулки Dvt_tnd: {Dvt_tnd:.4f} м")
-        print(f"Внешний диаметр Dtnd: {Dtnd:.4f} м")
+        print(f"Внешний диаметр D_tnd: {D_tnd:.4f} м")
         print(f"Высота лопатки h_tnd: {h_tnd:.4f} м")
         print(f"Геометрия ТНД корректна: {'ДА' if turbine_check else 'НЕТ'}")
 
@@ -696,7 +719,38 @@ def main():
         print("=" * 50)
         print(f"КНД - мин. высота лопатки ({min_blade_length*1000:.0f} мм): {'СОБЛЮДЕНО' if is_min_length_ok else 'НЕ СОБЛЮДЕНО'}")
         print(f"КНД - отн. диаметр втулки ({min_relative_hub_diameter}-{max_relative_hub_diameter}): {'СОБЛЮДЕНО' if is_hub_diameter_ok else 'НЕ СОБЛЮДЕНО' }")
+        if compressor_check:
+            print(f"ГЕОМЕТРИЯ КОМПРЕССОРА: СОБЛЮДЕНА")
+        else:
+            print(f"КОМПРЕССОР ЧЕК:\nВысота лопатки последнего СА:{"СОБЛЮДЕНО" if compressor_blade_check else "НЕ СОБЛЮДЕНО"}")
+            print(f"Относительный диаметр втулки в сечении К:{"СОБЛЮДЕНО" if rel_vt_K_check else "НЕ СОБЛЮДЕНО - "}{D_vt_vkvd / D_vkvd}")
+            print(f"Относительный диаметр втулки в сечении вКВД:{"СОБЛЮДЕНО" if rel_vt_vkvd_check else "НЕ СОБЛЮДЕНО"}")
+            print(f"отношение длин лопаток:{"СОБЛЮДЕНО" if rel_blade_check else "НЕ СОБЛЮДЕНО"}")
+        if turbine_check:
+            print(f"ГЕОМЕТРИЯ ТУРБИНЫ: СОБЛЮДЕНА")
+        else:
+            print(f"ТУРБИНА ЧЕК:\nОтношение длин лопаток ТВД:{"СОБЛЮДЕНО" if tvd_blade_check else "НЕ СОБЛЮДЕНО"}")
+            print(f"Отношение длин лопаток ТНД:{"СОБЛЮДЕНО" if rel_blade_tnd else "НЕ СОБЛЮДЕНО"}")
+            print(f"Приведенная длина лопатки в сечении ТНД:{"СОБЛЮДЕНО" if rel_blade_check else "НЕ СОБЛЮДЕНО"}")
+            
     printGeometry()
+    figNew, axesNew = plt.subplots(nrows=1, ncols=1, figsize=(8*2.5, 6*2.5))
+    first_axes_new = axesNew
+    temp = [1,2,3,6,7,10,12,13,15]
+    x = temp
+    labels = ['В',"Рзд","КНДв","КНДвых","КВДвх","КВДвых","Г","ТВД","ТНД"]
+    first_axes_new.set_xticks(x)
+    first_axes_new.set_xticklabels(labels, rotation=0, ha='center')
+    Dvt = [Dvt_B,D_vt_rzd,D_vt_vknd,D_vt_knd,D_vt_vkvd,D_vt_K,Dvt_g,Dvt_tvd,Dvt_tnd]
+    Dcp = [Dcp_B,D_cp_rzd,D_cp_vknd,D_cp_knd,D_cp_vkvd,D_cp_K,Dcp_g,Dcp_tvd,Dcp_tnd]
+    D = [D_B,D_V_rzd,D_vknd,D_knd,D_vkvd,D_K,D_g,D_tvd,D_tnd]
+    first_axes_new.plot(x, Dvt, label='Втулка', color='black')
+    first_axes_new.plot(x, Dcp, label='Средняя', color='orange', linestyle='-.')
+    first_axes_new.plot(x, D, label='Корпус', color='black')
+    first_axes_new.legend(loc='best')
+    for x_i in x:
+        plt.axvline(x=x_i,color='black', linestyle='--')
+    plt.savefig("../diagrams/comp.png")
 def formArray(arr):
     res = []
     temp = 0
