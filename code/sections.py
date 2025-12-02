@@ -2,45 +2,28 @@ import math
 import lab1
 import matplotlib.pyplot as plt
 import kursach as kurs
+from weasyprint import HTML
+import coeficents
 
 
 #ПРЕДРАСЧЁТ
-
-#КОЭФФИЦИЕНТЫ
-coef = {
-        "g_c": 0.86,
-        "sigma_intake": 0.99,
-        "sigma_cc": 0.955,
-        "sigma_1": 0.99,
-        "phi_c1": 0.97,
-        "phi_c2": 0.97,
-        "effk_gas": 0.995,
-        "effk_comp_full": 0.81,
-        "effk_fan_full": 0.87,
-        "a": 0.03,
-        "effk_hpt_full": 0.91,
-        "effk_lpt_full": 0.92,
-        "ksi_take": 0.1,
-        "g_air_back": 0.07,
-    }
-
 gC           =  0.86
 sigmaBX      = 0.99
 sigmaCC      = 0.955
 sigma1       = 0.99
-sigma2 = 0.98
-phiC1        = 0.97
-phiC2        = 0.97
+sigma2       = 0.935
+phiC1        = 0.99
+phiC2        = 0.99
 effkGas      = 0.995
 effkCompFull = 0.81
 effkLpcFull = 0.87
-effkFanFull  = 0.87
+effkFanFull  = 0.92
 aCoeff       = 0.03
 effkHptFull  = 0.91
 effkLptFull  = 0.92
 ksiTake      = 0.1
 gAirBack     = 0.07
-z = 0.6
+z = 0.5
 
 cB   = 220.0
 cBX  = cB - 45.0 #45
@@ -60,12 +43,20 @@ P0           = 101325.0
 T0           = 288.0
 ro0          = P0 / (287.0 * T0)
 
+var_calc_B = 2  # 0-вт,1-ср,2-корпус
+var_calc_rzd = 0
+var_calc_knd = 1
+var_calc_vkvd = 1
+var_calc_K = 1
+var_calc_G = 0
+var_calc_tnd = 0
 #ПРЕДРАСЧЁТ
-m = 6.7 # 
-TGfull = 1696.656
-TKfull = 805.1776
-PiK_full = 26.2500
-variant = lab1.calc_proto(coef,TGfull, m,PiK_full)
+expected_P = 264447 * 1.07
+m = 5.3 # 
+TGfull = 1701.5428
+TKfull = 838.2633856500527
+PiK_full = 34.7929
+variant = lab1.calc_proto(coeficents.coef,TGfull, m,PiK_full)
 TKfull = variant.T_k
 alpha = variant.alpha
 Xopt = variant.x_opt
@@ -75,17 +66,17 @@ P_spec_pred = variant.p_spec
 c_spec_pred = variant.c_spec
 Lfree = variant.l_free_energy
 print("TG* =", TGfull,"\n"
-      "m =", m,"\n"
-      "pik* =", PiK_full,"\n"
-      "TK* =", TKfull,"\n"
-      "alpha =", alpha,"\n"
-      "Xopt =", Xopt,"\n"
-      "k =", k_pred,"\n"
-      "k' =", k_gas_pred,"\n"
-      "P_spec =", P_spec_pred,"\n"
-      "c_spec =", c_spec_pred,"\n"
-      "Lfree =", Lfree,"\n"
-      )
+    "m =", m,"\n"
+    "pik* =", PiK_full,"\n"
+    "TK* =", TKfull,"\n"
+    "alpha =", alpha,"\n"
+    "Xopt =", Xopt,"\n"
+    "k =", k_pred,"\n"
+    "k' =", k_gas_pred,"\n"
+    "P_spec =", P_spec_pred,"\n"
+    "c_spec =", c_spec_pred,"\n"
+    "Lfree =", Lfree,"\n"
+    )
 
 
 def calc_density(P, T, R):
@@ -94,17 +85,7 @@ def calculate_LB2(q_T, v_or6,x, L_CB, eta_THA_star, m):
     return ((1 + q_T - v_or6) * x * L_CB * eta_THA_star) / m
 T0 = 288.0
 P0 = 101325.0
-cBX = 175.0
-cB = 220.0
-sigmaBX = 0.99
 
-var_calc_B = 1  # 0-вт,1-ср,2-корпус
-var_calc_rzd = 1
-var_calc_knd = 1
-var_calc_vkvd = 2
-var_calc_K = 2
-var_calc_G = 0
-var_calc_tnd = 0
 
 def main():
     
@@ -116,47 +97,45 @@ def main():
     PBX = PBXfull * math.pow(TBXfull/TBX, (1.4/(1-1.4)))
     roBX = PBX / (287 * TBX)
     print("\tTBX* =", TBXfull,
-          "\n\tTBX =", TBX,
-          "\n\tPBX* =", PBXfull,
-          "\n\tPBX =", PBX,
-          "\n\troBX =", roBX,
-        
-    )
-    #print(f"{TBX:.2f}|{PBX:.2f}|{PoBX:.2f}")
+        "\n\tTBX =", TBX,
+        "\n\tPBX* =", PBXfull,
+        "\n\tPBX =", PBX,
+        "\n\troBX =", roBX)
 
 #Сечение В-В
     print("В-В:")
     PBfull = PBXfull * sigmaBX
     TBfull = TBXfull
     cP = 1004.5
-    TB = TBfull - (cB * cB / cP)
+    TB = TBfull - (cB * cB / 2 /cP)
     PB = PBfull * math.pow(TBfull/TB, (1.4/(1-1.4)))
     roB = calc_density(PB, TB, 287.0)
     print("\tTB* =", TBfull,
         "\n\tTB =", TB,
         "\n\tPB* =", PBfull,
         "\n\tPB =", PB,
-        "\n\troB =", roB, 
-    )
+        "\n\troB =", roB)
     
 #Доп параметры для сечений
     print("Params:")
     compressor = kurs.calculate_compressor_temperature(
-                288, PiK_full, coef["effk_comp_full"]
+                288, PiK_full, coeficents.coef["effk_comp_full"]
             )
     combustion_props = kurs.calculate_combustion_properties(
-                0.86, 0.14, TKfull, TGfull, coef["effk_gas"]
+                0.86, 0.14, TKfull, TGfull, coeficents.coef["effk_gas"]
             )
     q_T = 1 / (combustion_props["alpha"] * combustion_props["L0"])
     print("\tq_T = ",q_T)
     Hu = combustion_props["Hu"]
-    v_take = coef["ksi_take"] - coef["g_air_back"]
-    LB2 = calculate_LB2(q_T,v_take,Xopt,Lfree,coef["effk_lpt_full"],6.7)
+    v_take = coeficents.coef["ksi_take"] - coeficents.coef["g_air_back"]
+    LB2 = calculate_LB2(q_T,v_take,Xopt,Lfree,coeficents.coef["effk_lpt_full"],6.7)
     print("\tLB2 = ",LB2)
-    TB2full = kurs.calculate_fan_temperature(TBfull,LB2,coef["effk_fan_full"])[0]
+    TB2full = kurs.calculate_fan_temperature(TBfull,LB2,coeficents.coef["effk_fan_full"])[0]
+    PiBstar = kurs.calculate_fan_temperature(TBfull,LB2,coeficents.coef["effk_fan_full"])[1]
     print("\tTB2full = ",TB2full)
-    LB2 = kurs.calc_LB2(TBfull,1.7,coef["effk_fan_full"])["LB2"]
-    TB2full = kurs.calc_LB2(TBfull,1.7,coef["effk_fan_full"])["TB2full"]
+    print("\tPiBfull = ",PiBstar)
+    LB2 = kurs.calc_LB2(TBfull,PiBstar,coeficents.coef["effk_fan_full"])["LB2"]
+    TB2full = kurs.calc_LB2(TBfull,PiBstar,coeficents.coef["effk_fan_full"])["TB2full"]
     print("\tLB2 = ", LB2,"\n\tTB2full = ",TB2full)
     #Принял итоговое пи вентилятора =1,7 т.к при пи=1.95 полный пи всего КНД получался 1,42, что бред
     
@@ -211,7 +190,6 @@ def main():
     print("\tPK =",PK)
     roK = calc_density(PK, TK, 287.0)
     print("\troK =",roK)
-    
 #Сечение Г-Г
     print("Г-Г:")
     cpGas = kurs.get_cpgas(0.86, 0.14, TGfull, alpha)["cp_mix"]
@@ -289,13 +267,16 @@ def main():
     print("\tTC1* =", TC1full)
     kMixC1 = kurs.get_cpmix(TC1full, alpha, ksiTake, q_T, gAirBack)["k"]
     RMixC1 = kurs.get_cpmix(TC1full, alpha, ksiTake, q_T, gAirBack)["R_mix"]
+    kMixC1ave = kurs.get_cpmix_ave(T0, TC1full, alpha, ksiTake, q_T, gAirBack)["k"]
+    cpMixC1ave = kurs.get_cpmix_ave(T0, TC1full, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
+    RMixC1ave = kurs.get_cpmix_ave(T0, TC1full, alpha, ksiTake, q_T, gAirBack)["R_mix"]
     print("\tkMixC1 = ",kMixC1)
-    cc1t = math.sqrt(2 * kMixC1 / (kMixC1 + 1) * RMixC1 * TC1full)
+    cc1t = math.sqrt(2 * kMixC1ave / (kMixC1ave + 1) * RMixC1ave * TC1full)
     print("\tcc1t =", cc1t)
     cc1 = phiC1 * cc1t
     print("\tcc1 =", cc1)
-    sigmaC1 = kurs.GDF_pressure(kMixC1, 1, 1)["GDF_P"] / kurs.GDF_pressure(kMixC1, 1, phiC1)["GDF_P"]
-    GDF1 = kurs.GDF_pressure(kMixC1, 1, phiC1)["GDF_P"]
+    sigmaC1 = kurs.GDF_pressure(kMixC1ave, 1, 1)["GDF_P"] / kurs.GDF_pressure(kMixC1ave, 1, phiC1)["GDF_P"]
+    GDF1 = kurs.GDF_pressure(kMixC1ave, 1, phiC1)["GDF_P"]
     print("\tGDF1 =", GDF1)
     print("\tsigmaC1 =", sigmaC1)
     PiC1_full = PTNDfull * sigma1 / P0
@@ -308,15 +289,12 @@ def main():
     print("\tPC1* =", PC1full)
     PC1 = P0
     print("\tPC1 =", PC1)
-    kMixC1ave = kurs.get_cpmix_ave(TC1full, T0, alpha, ksiTake, q_T, gAirBack)["k"]
-    cpMixC1ave = kurs.get_cpmix_ave(TC1full, T0, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
-    RMixC1ave = kurs.get_cpmix_ave(TC1full, T0, alpha, ksiTake, q_T, gAirBack)["R_mix"]
+
     print("\tkMixC1ave = ",kMixC1ave,"\n\tcpMixC1ave = ", cpMixC1ave,"\n\tRMixC1ave = ", RMixC1ave)
     TC1 = TC1full - cc1_docr * cc1_docr / 2 / cpMixC1ave
     print("\tTC1 =", TC1)
     roC1 = calc_density(PC1, TC1, RMixC1ave)
     print("\troC1 =",roC1)
-    
 #ВТОРОЙ КОНТУР
 
 #Сечение В2-В2
@@ -364,7 +342,7 @@ def main():
     print("Основные параметры двигателя:")
     P_spec = cc1_docr * (1 + q_T - v_take) / (m + 1) + cc2_docr * m / (m + 1)
     print("\tP spec =", P_spec)
-    Gair = 230000 * 1.07 / P_spec
+    Gair = expected_P / P_spec
     print("\tGair =", Gair)
     Gair1 = Gair / (1 + m)
     print("\tGair1 =", Gair1)
@@ -386,15 +364,11 @@ def main():
     print("\tNTVD =", NTVD)
     NTND = LTND * Ggas
     print("\tNTND =", NTND)
-    
     P_diff = (P_spec_pred - P_spec) / P_spec_pred * 100
     print("\tP diff = ",P_diff)
     Ndiff = (NKND + NB2 - NTND)
     print("\tN diff = ",Ndiff)
     
-
-    
-
 # Построение второго графика на правой оси
     temp = [1 * 2,2 * 2,3 * 2,5 * 2,10 * 2,3 * 2,4 * 2,7 * 2,3 * 2]
     x = formArray(temp)
@@ -430,10 +404,10 @@ def main():
     second_axes.plot(x, y1,label = 'Полная',color ='blue')
     second_axes.set_ylabel('Давления')
     second_axes.tick_params(axis='y', labelcolor='b')
-    second_axes.set_ylim(20*1000,2800*1000)
+    second_axes.set_ylim(20*1000,3750*1000)
     right_ax_sec = second_axes.twinx()
     right_ax_sec.plot(x, y2, label = 'Статика',color = 'blue',linestyle='-.')
-    right_ax_sec.set_ylim(20*1000,2800*1000)
+    right_ax_sec.set_ylim(20*1000,3750*1000)
     
     lines1, labels1 = second_axes.get_legend_handles_labels()
     lines2, labels2 = right_ax_sec.get_legend_handles_labels()
@@ -465,7 +439,6 @@ def main():
     
         # Исходные параметры
 # Вентилятор
-
     Dcp_B = 0.0
     Dvt_B = 0.0
     d_vt_B = 0.35
@@ -475,7 +448,7 @@ def main():
         D_B = Dvt_B / d_vt_B
         Dcp_B = (D_B + Dvt_B) / 2
     elif var_calc_B == 1:
-     # относительный диаметр втулки вентилятора
+    # относительный диаметр втулки вентилятора
         Dcp_B = math.sqrt((F_B * (1 + d_vt_B)) / (math.pi * (1 - d_vt_B)))
         # Диаметр корпуса и втулки вентилятора
         D_B = (2 * Dcp_B) / (1 + d_vt_B)
@@ -485,8 +458,8 @@ def main():
         Dvt_B = D_B * d_vt_B
         Dcp_B = (D_B + Dvt_B) / 2
     h_B = (D_B - Dvt_B) / 2
+    
 #Разделитель
-
     Dcp_rzd = 0.0
     Dvt_rzd = 0.0
     D_rzd = 0.0
@@ -512,9 +485,9 @@ def main():
     # Диаметр разделителя
     D_vrzd = math.sqrt(D_rzd**2 - (4 * F_B2 / math.pi))
     # Высота канала второго контура или высота лопатки НА вентилятора
-    h_B2 = (D_rzd - D_rzd) / 2
+    h_B2 = (D_rzd - D_vrzd) / 2
     # Толщина разделителя
-    b_rzd = 0.085 * h_SA_rzd  # ... или 0.1 * h_SA_red
+    b_rzd = 0.1 * h_SA_rzd  # ... или 0.1 * h_SA_red
     # Внешний диаметр канала первого контура
     F1 = Gair1 / (cB2 * roB2)
     D_vknd = D_vrzd - 2 * b_rzd
@@ -526,13 +499,12 @@ def main():
     h_vknd = (D_vknd - D_vt_vknd) / 2
     # Диаметр корпуса и втулки на выходе из КНД
 #КНД
-
     D_knd = 0.0
     Dvt_knd = 0.0
     Dcp_knd = 0.0
     F_knd = Gair1 / (cKND * roKND)    
     if var_calc_knd == 0:
-        Dvt_knd = Dvt_rzd
+        Dvt_knd = D_vt_vknd
         D_knd = math.sqrt(Dvt_knd ** 2 + (4 * F_knd / math.pi))
         Dcp_knd = (D_knd + Dvt_knd) / 2
     elif var_calc_knd == 1:
@@ -592,8 +564,8 @@ def main():
         Dcp_K = (D_K + Dvt_K) / 2
     elif var_calc_K == 1:
         Dcp_K = Dcp_vkvd
-        D_K = (2 * Dcp_K) - Dvt_K
         Dvt_K = Dcp_K - (F_K / math.pi / Dcp_K )
+        D_K = (2 * Dcp_K) - Dvt_K
     elif var_calc_K == 2:
         D_K = D_vkvd
         Dvt_K = math.sqrt(D_K**2 - (4 * F_K / math.pi))
@@ -618,7 +590,6 @@ def main():
     Dcp_tvd = D_cp_H * h_tvd
     # Площадь проходного сечения Г-Г (без учета возврата воздуха)
 #Г-Г
-
     D_g = 0.0
     Dcp_g = 0.0
     Dvt_g = 0.0
@@ -643,7 +614,6 @@ def main():
     Dcp_tnd = 0.0
     Dvt_tnd = 0.0
     D_tnd = 0.0
-   
     if var_calc_tnd == 0:
         Dvt_tnd = Dvt_tvd
         D_tnd = math.sqrt(Dvt_tnd ** 2 + (4 * F_tnd / math.pi))
@@ -676,6 +646,222 @@ def main():
     Dvt_c2 = Dvt_vc2
     D_c2 = math.sqrt((4 * F_c2) / math.pi + Dvt_c2)
     Dcp_c2 = (D_c2 + Dvt_c2) / 2
+    figNew, axesNew = plt.subplots(nrows=1, ncols=1, figsize=(26, 13))
+    first_axes_new = axesNew
+    temp = [0,1,2,3,5,6,10,12,13,15,17]
+    x = temp
+    labels = ['Вх','В',"Рзд","КНДв","КНДвых","КВДвх","КВДвых","Г","ТВД","ТНД","С1"]
+    first_axes_new.set_xticks(x)
+    first_axes_new.set_xticklabels(labels, rotation=0, ha='center')
+    Dvt = [0,Dvt_B,Dvt_rzd,D_vt_vknd,Dvt_knd,Dvt_vkvd,Dvt_K,Dvt_g,Dvt_tvd,Dvt_tnd,0]
+    Dcp = [D_BX / 2,Dcp_B,Dcp_rzd,D_cp_vknd,Dcp_knd,Dcp_vkvd,Dcp_K,Dcp_g,Dcp_tvd,Dcp_tnd,D_c1 / 2]
+    D = [D_BX,D_B,D_rzd,D_vknd,D_knd,D_vkvd,D_K,D_g,D_tvd,D_tnd,D_c1]
+    y_soplo_second = [D_BX,D_B,D_B,D_B,D_B,D_vc2,D_c2,D_c2,D_c2,D_c2,D_c2]
+    first_axes_new.plot(x, Dvt, label='Втулка', color='black')
+    first_axes_new.plot(x, Dcp, label='Средняя', color='orange', linestyle='-.')
+    first_axes_new.plot(x, D, label='Корпус', color='black')
+    first_axes_new.plot(x, y_soplo_second, label='С2', color='blue')
+    first_axes_new.legend(loc='best')
+    for x_i in x:
+        plt.axvline(x=x_i,color='black', linestyle='--')
+    plt.savefig("../diagrams/comp.png")
+    generate_engine_report_html({
+                "Коэффициенты": [
+            ("g_c", gC),
+            ("sigma_intake", sigmaBX),
+            ("sigma_cc", sigmaCC),
+            ("sigma_1", sigma1),
+            ("sigma_2", sigma2),
+            ("phi_c1", phiC1),
+            ("phi_c2", phiC2),
+            ("effk_gas", effkGas),
+            ("effk_comp_full", effkCompFull),
+            ("effk_fan_full", effkFanFull),
+            ("a", aCoeff),
+            ("effk_hpt_full", effkHptFull),
+            ("effk_lpt_full", effkLptFull),
+            ("ksi_take", ksiTake),
+            ("g_air_back", gAirBack),
+            ("z", z)
+        ],
+
+        "Скорости и диаметры": [
+            ("cB", 220.0),
+            ("cBX", 175.0),        # cB - 45
+            ("cKND", 180.0),
+            ("cB2", 204.0),        # cB - 16
+            ("cK", 145.0),
+            ("cG", 155.0),
+            ("MHPT", 0.5),
+            ("MLPT", 0.4),
+            ("dB", 0.475),          # (0.30 + 0.65)/2
+            ("dHPC", 0.575)         # (0.50 + 0.65)/2
+        ],
+
+        "Прочие параметры": [
+            ("DcpDivHvyhHighPressure", 13.0),  # (6.0 + 20.0)/2
+            ("DcpDivHvyhOther", 3.0),
+            ("F1", 0.3),                        # (0.25 + 0.35)/2
+            ("P0", 101325.0),
+            ("T0", 288.0),
+            ("ro0", 1.225)                       # P0 / (287.0 * T0)
+        ],
+
+        "Предрасчёт": [
+            ("expected_P", expected_P),          # 264447 * 1.07
+            ("m", m),
+            ("TGfull", TGfull),
+            ("TKfull", TKfull),
+            ("PiK_full", PiK_full)
+        ],
+        "Params": [
+            ("q_T", q_T),
+            ("LB2", LB2),
+            ("TB2*", TB2full),
+            ("PiB*", PiBstar),
+            ("LK", LK),
+            ("LKND", LKND),
+            ("PiKND*", PiKND_full),
+            ("TKND*", TKNDfull),
+            ("PiKVD*", PiKVD_full),
+            ("LKVD_adiabatic", LKVD_adiabatic),
+            ("effk_HPC*", effkHpcFull),
+        ],
+        "BX-BX": [
+            ("TBX*", TBXfull),
+            ("TBX", TBX),
+            ("PBX*", PBXfull),
+            ("PBX", PBX),
+            ("roBX", roBX),
+        ],
+        "B-B": [
+            ("TB*", TBfull),
+            ("TB", TB),
+            ("PB*", PBfull),
+            ("PB", PB),
+            ("roB", roB),
+        ],
+        "KНД-KВД": [
+            ("cpLPC*", cpLPC),
+            ("kLPC*", kLPC),
+            ("PKND*", PKNDfull),
+            ("TKND", TKND),
+            ("PKND", PKND),
+            ("roKND", roKND),
+        ],
+        "К-К" : [
+            ("cpHPC*", cpHPC),
+            ("kHPC*", kHPC),
+            ("PK*", PKfull),
+            ("LKVD", LKVD),
+            ("TK", TK),
+            ("PK", PK),
+            ("roK", roK),
+        ],
+        "Г-Г": [
+            ("cpGas*", cpGas),
+            ("kGas*", kGas),
+            ("RGas*", RGas),
+            ("PG*", PGfull),
+            ("TG", TG),
+            ("PG", PG),
+            ("roG", roG),
+            ("tTGorr", TGcorr),
+            ("tcpMix", cpMix),
+            ("kMix", kMix),
+            ("RMix", RMix)
+        ],
+        "TВД-ТВД": [
+            ("LTVD", LTVD),
+            ("TTVD*", TTVDfull),
+            ("PiTVD*", PiTVD_full),
+            ("PTVD*", PTVDfull),
+            ("kMixTVDfull", kMixTVDfull),
+            ("RMixTVDfull", RMixTVDfull),
+            ("TTVD", TTVD),
+            ("PTVD", PTVD),
+            ("kMixTVD", kMixTVD),
+            ("RMixTVD", RMixTVD),
+            ("roTVD", roTVD),
+            ("cTVD", cTVD)
+        ],
+        "ТНД-ТНД": [
+            ("LTND", LTND),
+            ("TTND*", TTNDfull),
+            ("PiTND*", PiTND_full),
+            ("PTND*", PTNDfull),
+            ("kMixTNDfull", kMixTNDfull),
+            ("RMixTNDfull", RMixTNDfull),
+            ("TTND", TTND),
+            ("PTND", PTND),
+            ("kMixTND", kMixTND),
+            ("RMixTND", RMixTND),
+            ("roTND", roTND),
+            ("cTND", cTND)
+        ],
+
+        "С1-С1": [
+            ("TC1*", TC1full),
+            ("kMixC1", kMixC1),
+            ("RMixC1", RMixC1),
+            ("cc1t", cc1t),
+            ("cc1", cc1),
+            ("sigmaC1", sigmaC1),
+            ("GDF1", GDF1),
+            ("PiC1*", PiC1_full),
+            ("PiCr*", PiCr),
+            ("cc1_docr", cc1_docr),
+            ("PC1*", PC1full),
+            ("PC1", PC1),
+            ("kMixC1ave", kMixC1ave),
+            ("cpMixC1ave", cpMixC1ave),
+            ("RMixC1ave", RMixC1ave),
+            ("TC1", TC1),
+            ("roC1", roC1)
+        ],
+
+        "В2-В2": [
+            ("PB2*", PB2full),
+            ("cpB2", cpB2),
+            ("kB2", kB2),
+            ("TB2", TB2),
+            ("PB2", PB2),
+            ("roB2", roB2)
+        ],
+
+        "С2-С2": [
+            ("TC2*", TC2full),
+            ("PC2*", PC2full),
+            ("kC2", kC2),
+            ("sigmaC2", sigmaC2),
+            ("GDF2a", GDF2a),
+            ("GDF2b", GDF2b),
+            ("PiC2*", PiC2_full),
+            ("Pi2Cr*", Pi2Cr),
+            ("cpC2", cpC2),
+            ("TC2", TC2),
+            ("PC2", PC2),
+            ("roC2", roC2)
+        ],
+
+        "Основные параметры двигателя": [
+            ("P_spec", P_spec),
+            ("Gair", Gair),
+            ("Gair1", Gair1),
+            ("Gair2", Gair2),
+            ("Ggas", Ggas),
+            ("C_spec", C_spec),
+            ("EngEff", EngEff),
+            ("NB2", NB2),
+            ("NKND", NKND),
+            ("NKVD", NKVD),
+            ("NTVD", NTVD),
+            ("NTND", NTND),
+            ("P_diff", P_diff),
+            ("Ndiff", Ndiff)
+        ]
+            
+},"../calcs/sections_report.html", "../calcs/sections_report.pdf")
     def printGeometry():
         print("=" * 50)
         print("РАСЧЕТ ГЕОМЕТРИИ ПРОТОЧНОЙ ЧАСТИ ГТД")
@@ -819,27 +1005,175 @@ def main():
             print(f"Отношение длин лопаток ТНД:{"СОБЛЮДЕНО" if rel_blade_tnd else "НЕ СОБЛЮДЕНО"}")
             print(f"Приведенная длина лопатки в сечении ТНД:{"СОБЛЮДЕНО" if rel_blade_check else "НЕ СОБЛЮДЕНО"}")
             
+    def save_geometry_html(filename="geometry_report.html", pdf_filename="geometry_report.pdf"):
+        def make_section(title, rows):
+            html = f"<h2>{title}</h2>\n"
+            html += "<table>\n<tr><th>Параметр</th><th>Значение</th></tr>\n"
+            for name, value in rows:
+                html += f"<tr><td>{name}</td><td>{value}</td></tr>\n"
+            html += "</table>\n"
+            return html
+
+        # ---- CSS ----
+        css = """
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 15px;
+                background: #fafafa;
+            }
+            h2 {
+                margin-top: 30px;
+                color: #333;
+                border-bottom: 2px solid #4a90e2;
+                padding-bottom: 5px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                margin-bottom: 30px;
+            }
+            table, th, td {
+                border: 1px solid #aaa;
+            }
+            th {
+                background: #e8f0ff;
+                font-weight: bold;
+            }
+            td, th {
+                padding: 8px 12px;
+                text-align: left;
+            }
+            tr:nth-child(even) td {
+                background: #f6f6f6;
+            }
+            .graph-block {{ margin-top: 10px; text-align: center; }}
+        </style>
+        """
+
+        # ---- HTML сборка ----
+        html = "<html><head><meta charset='utf-8'>" + css + "</head><body>"
+        html += "<h1>Отчёт по геометрии двигателя</h1>"
+
+        html += make_section("СЕЧЕНИЕ ВХОДА (BX)", [
+            ("Площадь входного сечения F_BX", f"{F_BX:.4f} м²"),
+            ("Диаметр входного сечения D_BX", f"{D_BX:.4f} м"),
+        ])
+
+        html += make_section("СЕЧЕНИЕ ВЕНТИЛЯТОРА (B)", [
+            ("Площадь тракта вентилятора F_B", f"{F_B:.4f} м²"),
+            ("Относительный диаметр втулки d_vt_B", f"{d_vt_B:.3f}"),
+            ("Средний диаметр Dcp_B", f"{Dcp_B:.4f} м"),
+            ("Диаметр корпуса D_B", f"{D_B:.4f} м"),
+            ("Диаметр втулки Dvt_B", f"{Dvt_B:.4f} м"),
+            ("Высота первой лопатки h_B", f"{h_B:.4f} м"),
+        ])
+
+        html += make_section("СЕЧЕНИЕ РАЗДЕЛИТЕЛЯ (РЗД)", [
+            ("Площадь перед разделителем F_rzd", f"{F_rzd:.4f} м²"),
+            ("Средний диаметр Dcp_rzd", f"{Dcp_rzd:.4f} м"),
+            ("Диаметр корпуса D_rzd", f"{D_rzd:.4f} м"),
+            ("Диаметр втулки Dvt_rzd", f"{Dvt_rzd:.4f} м"),
+            ("Высота лопатки СА h_SA_rzd", f"{h_SA_rzd:.4f} м"),
+            ("Толщина разделителя b_rzd", f"{b_rzd:.4f} м"),
+        ])
+
+        html += make_section("ВТОРОЙ КОНТУР (B2)", [
+            ("Площадь канала F_B2", f"{F_B2:.4f} м²"),
+            ("Диаметр разделителя D_rzd", f"{D_rzd:.4f} м"),
+            ("Высота канала h_B2", f"{h_B2:.4f} м"),
+        ])
+
+        html += make_section("КНД – ВХОД (vKND)", [
+            ("Высота лопатки h_vknd", f"{h_vknd:.4f} м"),
+            ("Внешний диаметр D_vknd", f"{D_vknd:.4f} м"),
+            ("Втулочный диаметр D_vt_vknd", f"{D_vt_vknd:.4f} м"),
+            ("Средний диаметр D_cp_vknd", f"{D_cp_vknd:.4f} м"),
+        ])
+
+        html += make_section("КНД – ВЫХОД", [
+            ("Площадь сечения F_knd", f"{F_knd:.4f} м²"),
+            ("Средний диаметр Dcp_knd", f"{Dcp_knd:.4f} м"),
+            ("Диаметр корпуса D_knd", f"{D_knd:.4f} м"),
+            ("Диаметр втулки Dvt_knd", f"{Dvt_knd:.4f} м"),
+            ("Высота лопатки h_knd", f"{h_knd:.4f} м"),
+            ("Относительный диаметр втулки", f"{relative_hub_diameter:.3f}"),
+            ("Геометрия КНД корректна", "ДА" if is_knd_geometry_valid else "НЕТ"),
+        ])
+
+        html += make_section("КВД – ВХОД (vKVD)", [
+            ("Относительный диаметр втулки d_vt_kvd", f"{d_vt_kvd:.3f}"),
+            ("Внешний диаметр D_vkvd", f"{D_vkvd:.4f} м"),
+            ("Диаметр втулки Dvt_vkvd", f"{Dvt_vkvd:.4f} м"),
+            ("Средний диаметр Dcp_vkvd", f"{Dcp_vkvd:.4f} м"),
+            ("Высота лопатки h_vkvd", f"{h_vkvd:.4f} м"),
+        ])
+
+        html += make_section("КВД – ВЫХОД", [
+            ("Площадь сечения F_K", f"{F_K:.4f} м²"),
+            ("Внешний диаметр D_K", f"{D_K:.4f} м"),
+            ("Диаметр втулки Dvt_K", f"{Dvt_K:.4f} м"),
+            ("Средний диаметр Dcp_K", f"{Dcp_K:.4f} м"),
+            ("Высота лопатки h_K", f"{h_K:.4f} м"),
+        ])
+        html += make_section("СЕЧЕНИЕ Г-Г", [
+            ("Площадь сечения F_g", f"{F_g:.4f} м²"),
+            ("Внешний диаметр D_g", f"{D_g:.4f} м"),
+            ("Диаметр втулки Dvt_g", f"{Dvt_g:.4f} м"),
+            ("Средний диаметр Dcp_g", f"{Dcp_g:.4f} м"),
+            ("Высота лопатки h_g", f"{h_g:.4f} м"),
+        ])
+        html += make_section("ТВД", [
+            ("Площадь сечения F_tvd", f"{F_tvd:.4f} м²"),
+            ("Отношение D_cp_H", f"{D_cp_H}"),
+            ("Высота лопатки h_tvd", f"{h_tvd:.4f} м"),
+            ("Внешний диаметр D_tvd", f"{D_tvd:.4f} м"),
+            ("Диаметр втулки Dvt_tvd", f"{Dvt_tvd:.4f} м"),
+            ("Средний диаметр Dcp_tvd", f"{Dcp_tvd:.4f} м"),
+        ])
+        html += make_section("ТНД", [
+            ("Площадь сечения F_tnd", f"{F_tnd:.4f} м²"),
+            ("Средний диаметр Dcp_tnd", f"{Dcp_tnd:.4f} м"),
+            ("Диаметр втулки Dvt_tnd", f"{Dvt_tnd:.4f} м"),
+            ("Внешний диаметр D_tnd", f"{D_tnd:.4f} м"),
+            ("Высота лопатки h_tnd", f"{h_tnd:.4f} м"),
+            ("Геометрия ТНД корректна", "ДА" if turbine_check else "НЕТ"),
+        ])
+        html += make_section("СОПЛО ПЕРВОГО КОНТУРА", [
+            ("Площадь сечения F_tnd", f"{F_c1:.4f} м²"),
+            ("Диаметр сопла D_c1", f"{D_c1:.4f} м"),
+        ])
+        html += make_section("СОПЛО ВТОРОГО КОНТУРА", [
+            ("Площадь сечения F_c2", f"{F_c2:.4f} м²"),
+            ("Диаметр сопла D_c2", f"{D_c2:.4f} м"),
+            ("Внутрений диаметр сопла Dvt_c2", f"{Dvt_c2:.4f} м"),
+        ])
+        html += make_section("ПРОВЕРКИ ГЕОМЕТРИИ", [
+            ("КНД — мин. высота лопатки", "СОБЛЮДЕНО" if is_min_length_ok else "НЕ СОБЛЮДЕНО"),
+            ("КНД — относительный диаметр втулки", "СОБЛЮДЕНО" if is_hub_diameter_ok else "НЕ СОБЛЮДЕНО"),
+            ("Геометрия компрессора", "СОБЛЮДЕНА" if compressor_check else "НЕТ"),
+            ("Геометрия турбины", "СОБЛЮДЕНА" if turbine_check else "НЕТ"),
+        ])
+        html += "</body></html>"
+
+        # ---- Сохранить HTML ----
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(html)
+
+        print(f"[OK] HTML файл сохранён: {filename}")
+
+        # ---- Автоматическая генерация PDF ----
+        try:
+            HTML(filename).write_pdf(pdf_filename)
+            print(f"[OK] PDF файл сохранён: {pdf_filename}")
+        except Exception as e:
+            print("[WARN] PDF не был создан:", e)
     printGeometry()
-    figNew, axesNew = plt.subplots(nrows=1, ncols=1, figsize=(26, 13))
-    first_axes_new = axesNew
-    temp = [1,2,3,5,6,10,12,13,15,17]
-    x = temp
-    labels = ['В',"Рзд","КНДв","КНДвых","КВДвх","КВДвых","Г","ТВД","ТНД","С1"]
-    first_axes_new.set_xticks(x)
-    first_axes_new.set_xticklabels(labels, rotation=0, ha='center')
-    Dvt = [Dvt_B,Dvt_rzd,D_vt_vknd,Dvt_knd,Dvt_vkvd,Dvt_K,Dvt_g,Dvt_tvd,Dvt_tnd,0]
-    Dcp = [Dcp_B,Dcp_rzd,D_cp_vknd,Dcp_knd,Dcp_vkvd,Dcp_K,Dcp_g,Dcp_tvd,Dcp_tnd,D_c1 / 2]
-    D = [D_B,D_rzd,D_vknd,D_knd,D_vkvd,D_K,D_g,D_tvd,D_tnd,D_c1]
-    y_soplo_second = [D_B,D_B,D_B,D_B,D_vc2,D_c2,D_c2,D_c2,D_c2,D_c2]
-    first_axes_new.plot(x, Dvt, label='Втулка', color='black')
-    first_axes_new.plot(x, Dcp, label='Средняя', color='orange', linestyle='-.')
-    first_axes_new.plot(x, D, label='Корпус', color='black')
-    first_axes_new.plot(x, y_soplo_second, label='С2', color='blue')
-    first_axes_new.legend(loc='best')
-    for x_i in x:
-        plt.axvline(x=x_i,color='black', linestyle='--')
-    plt.savefig("../diagrams/comp.png")
+    save_geometry_html("../calcs/geometry_report.html", "../calcs/geometry.pdf")
     
+    
+
 def formArray(arr):
     res = []
     temp = 0
@@ -847,7 +1181,88 @@ def formArray(arr):
         res.append(temp + value)
         temp += value
     return res
+def generate_engine_report_html(data: dict, file_name_html,file_name_pdf) -> str:
+    """
+    Принимает словарь вида:
+    {
+        "BX-БX": [
+            ("TBX*", TBXfull),
+            ("TBX", TBX),
+            ("PBX*", PBXfull),
+            ("PBX", PBX),
+            ("roBX", roBX),
+        ],
+        "B-B": [
+            ("TB*", TBfull),
+            ("TB", TB),
+            ("PB*", PBfull),
+            ("PB", PB),
+            ("roB", roB),
+        ],
+        ...
+    }
+    И возвращает HTML со всеми таблицами.
+    """
 
+    # ----- CSS для красивых таблиц -----
+    css = """
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #fafafa;
+        }
+        h2 {
+            margin-top: 40px;
+            color: #333;
+            border-left: 6px solid #007acc;
+            padding-left: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #bbb;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #e0e0e0;
+        }
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+    </style>
+    """
+
+    html = f"<html><head><meta charset='utf-8'> {css} </head><body>"
+    html += f"<h1>Расчёт параметров двигателя</h1>"
+
+    # ---- Генерация таблиц ----
+    for section, rows in data.items():
+        html += f"<h2>{section}</h2>\n"
+        html += "<table>\n"
+        html +="<tr><th>Параметр</th><th>Значение</th></tr>\n"
+        for name, value in rows:
+            html += f"<tr><td>{name}</td><td>{value}</td></tr>\n"
+        html += "</table>\n"
+
+    html += "</body></html>"
+    with open(file_name_html, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    print(f"[OK] HTML файл сохранён: {file_name_html}")
+
+        # ---- Автоматическая генерация PDF ----
+    try:
+        HTML(file_name_html).write_pdf(file_name_pdf)
+        print(f"[OK] PDF файл сохранён: {file_name_pdf}")
+    except Exception as e:
+        print("[WARN] PDF не был создан:", e)
 
 # Вызов функции main
 if __name__ == "__main__":

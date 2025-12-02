@@ -1,0 +1,252 @@
+<html><head><meta charset='utf-8'> 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #fafafa;
+        }
+        h2 {
+            margin-top: 40px;
+            color: #333;
+            border-left: 6px solid #007acc;
+            padding-left: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #bbb;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #e0e0e0;
+        }
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+    </style>
+     </head><body><h1>Расчёт параметров двигателя</h1><h2>Коэффициенты</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>g_c</td><td>0.86</td></tr>
+<tr><td>sigma_intake</td><td>0.99</td></tr>
+<tr><td>sigma_cc</td><td>0.955</td></tr>
+<tr><td>sigma_1</td><td>0.99</td></tr>
+<tr><td>sigma_2</td><td>0.935</td></tr>
+<tr><td>phi_c1</td><td>0.99</td></tr>
+<tr><td>phi_c2</td><td>0.99</td></tr>
+<tr><td>effk_gas</td><td>0.995</td></tr>
+<tr><td>effk_comp_full</td><td>0.81</td></tr>
+<tr><td>effk_fan_full</td><td>0.92</td></tr>
+<tr><td>a</td><td>0.03</td></tr>
+<tr><td>effk_hpt_full</td><td>0.91</td></tr>
+<tr><td>effk_lpt_full</td><td>0.92</td></tr>
+<tr><td>ksi_take</td><td>0.1</td></tr>
+<tr><td>g_air_back</td><td>0.07</td></tr>
+<tr><td>z</td><td>0.5</td></tr>
+</table>
+<h2>Скорости и диаметры</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>cB</td><td>220.0</td></tr>
+<tr><td>cBX</td><td>175.0</td></tr>
+<tr><td>cKND</td><td>180.0</td></tr>
+<tr><td>cB2</td><td>204.0</td></tr>
+<tr><td>cK</td><td>145.0</td></tr>
+<tr><td>cG</td><td>155.0</td></tr>
+<tr><td>MHPT</td><td>0.5</td></tr>
+<tr><td>MLPT</td><td>0.4</td></tr>
+<tr><td>dB</td><td>0.475</td></tr>
+<tr><td>dHPC</td><td>0.575</td></tr>
+</table>
+<h2>Прочие параметры</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>DcpDivHvyhHighPressure</td><td>13.0</td></tr>
+<tr><td>DcpDivHvyhOther</td><td>3.0</td></tr>
+<tr><td>F1</td><td>0.3</td></tr>
+<tr><td>P0</td><td>101325.0</td></tr>
+<tr><td>T0</td><td>288.0</td></tr>
+<tr><td>ro0</td><td>1.225</td></tr>
+</table>
+<h2>Предрасчёт</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>expected_P</td><td>282958.29000000004</td></tr>
+<tr><td>m</td><td>5.3</td></tr>
+<tr><td>TGfull</td><td>1701.5428</td></tr>
+<tr><td>TKfull</td><td>869.2308255572699</td></tr>
+<tr><td>PiK_full</td><td>34.7929</td></tr>
+</table>
+<h2>Params</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>q_T</td><td>0.024523688093977633</td></tr>
+<tr><td>LB2</td><td>62902.69393222388</td></tr>
+<tr><td>TB2*</td><td>350.42298123800015</td></tr>
+<tr><td>PiB*</td><td>1.893472513740667</td></tr>
+<tr><td>LK</td><td>611173.8230676597</td></tr>
+<tr><td>LKND</td><td>108239.80521337978</td></tr>
+<tr><td>PiKND*</td><td>2.6829587093230014</td></tr>
+<tr><td>TKND*</td><td>395.21933893410727</td></tr>
+<tr><td>PiKVD*</td><td>12.968108632868</td></tr>
+<tr><td>LKVD_adiabatic</td><td>419330.2385405399</td></tr>
+<tr><td>effk_HPC*</td><td>0.833767897287148</td></tr>
+</table>
+<h2>BX-BX</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>TBX*</td><td>288.0</td></tr>
+<tr><td>TBX</td><td>272.7560975609756</td></tr>
+<tr><td>PBX*</td><td>101325.0</td></tr>
+<tr><td>PBX</td><td>83763.2546928748</td></tr>
+<tr><td>roBX</td><td>1.0700330181381792</td></tr>
+</table>
+<h2>B-B</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>TB*</td><td>288.0</td></tr>
+<tr><td>TB</td><td>263.90841214534595</td></tr>
+<tr><td>PB*</td><td>100311.75</td></tr>
+<tr><td>PB</td><td>73886.38485787228</td></tr>
+<tr><td>roB</td><td>0.9755045228994514</td></tr>
+</table>
+<h2>KНД-KВД</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>cpLPC*</td><td>1014.5316387556911</td></tr>
+<tr><td>kLPC*</td><td>1.394484562198368</td></tr>
+<tr><td>PKND*</td><td>269132.2833099316</td></tr>
+<tr><td>TKND</td><td>379.2513795515206</td></tr>
+<tr><td>PKND</td><td>232622.21171979638</td></tr>
+<tr><td>roKND</td><td>2.1371849863350825</td></tr>
+</table>
+<h2>К-К</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>cpHPC*</td><td>1116.6608238333279</td></tr>
+<tr><td>kHPC*</td><td>1.3459244931850078</td></tr>
+<tr><td>PK*</td><td>3490136.686575</td></tr>
+<tr><td>LKVD</td><td>502934.01785427995</td></tr>
+<tr><td>TK</td><td>858.4733065831889</td></tr>
+<tr><td>PK</td><td>3325061.6913856645</td></tr>
+<tr><td>roK</td><td>13.495563248592571</td></tr>
+</table>
+<h2>Г-Г</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>cpGas*</td><td>1297.970548404956</td></tr>
+<tr><td>kGas*</td><td>1.2857437120775599</td></tr>
+<tr><td>RGas*</td><td>288.4610044635438</td></tr>
+<tr><td>PG*</td><td>3333080.535679125</td></tr>
+<tr><td>TG</td><td>1692.2879675118809</td></tr>
+<tr><td>PG</td><td>3252279.870487956</td></tr>
+<tr><td>roG</td><td>6.696251364427866</td></tr>
+<tr><td>tTGorr</td><td>1659.2316432349385</td></tr>
+<tr><td>tcpMix</td><td>1278.556337491833</td></tr>
+<tr><td>kMix</td><td>1.2912125883099592</td></tr>
+<tr><td>RMix</td><td>288.3581710029914</td></tr>
+</table>
+<h2>TВД-ТВД</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>LTVD</td><td>505703.40744538925</td></tr>
+<tr><td>TTVD*</td><td>1258.6224790963622</td></tr>
+<tr><td>PiTVD*</td><td>3.85743520525805</td></tr>
+<tr><td>PTVD*</td><td>864066.4997135455</td></tr>
+<tr><td>kMixTVDfull</td><td>1.3032507285876778</td></tr>
+<tr><td>RMixTVDfull</td><td>288.3581710029914</td></tr>
+<tr><td>TTVD</td><td>1212.6551590335462</td></tr>
+<tr><td>PTVD</td><td>736386.4954225766</td></tr>
+<tr><td>kMixTVD</td><td>1.3055839354953795</td></tr>
+<tr><td>RMixTVD</td><td>288.3581710029914</td></tr>
+<tr><td>roTVD</td><td>2.1058926772230784</td></tr>
+<tr><td>cTVD</td><td>337.8369858169952</td></tr>
+</table>
+<h2>ТНД-ТНД</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>LTND</td><td>444055.87151025713</td></tr>
+<tr><td>TTND*</td><td>890.1640682814241</td></tr>
+<tr><td>PiTND*</td><td>4.958694615843902</td></tr>
+<tr><td>PTND*</td><td>174252.8158424399</td></tr>
+<tr><td>kMixTNDfull</td><td>1.3287990043778393</td></tr>
+<tr><td>RMixTNDfull</td><td>288.3581710029914</td></tr>
+<tr><td>TTND</td><td>855.0227400743182</td></tr>
+<tr><td>PTND</td><td>148076.63470596384</td></tr>
+<tr><td>kMixTND</td><td>1.3320755784060474</td></tr>
+<tr><td>RMixTND</td><td>288.3581710029914</td></tr>
+<tr><td>roTND</td><td>0.6005879414612658</td></tr>
+<tr><td>cTND</td><td>286.54273459681184</td></tr>
+</table>
+<h2>С1-С1</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>TC1*</td><td>890.1640682814241</td></tr>
+<tr><td>kMixC1</td><td>1.3287990043778393</td></tr>
+<tr><td>RMixC1</td><td>288.3581710029914</td></tr>
+<tr><td>cc1t</td><td>543.7943425297685</td></tr>
+<tr><td>cc1</td><td>538.3563991044708</td></tr>
+<tr><td>sigmaC1</td><td>0.9865904081353153</td></tr>
+<tr><td>GDF1</td><td>0.5425201426662686</td></tr>
+<tr><td>PiC1*</td><td>1.7025441666322774</td></tr>
+<tr><td>PiCr*</td><td>1.849876773629186</td></tr>
+<tr><td>cc1_docr</td><td>499.7165023187573</td></tr>
+<tr><td>PC1*</td><td>171916.1567007207</td></tr>
+<tr><td>PC1</td><td>101325.0</td></tr>
+<tr><td>kMixC1ave</td><td>1.359238789580879</td></tr>
+<tr><td>cpMixC1ave</td><td>1090.8323026204723</td></tr>
+<tr><td>RMixC1ave</td><td>288.300539267228</td></tr>
+<tr><td>TC1</td><td>775.7025776885042</td></tr>
+<tr><td>roC1</td><td>0.45308107582016155</td></tr>
+</table>
+<h2>В2-В2</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>PB2*</td><td>170529.975</td></tr>
+<tr><td>cpB2</td><td>1009.8630757593426</td></tr>
+<tr><td>kB2</td><td>1.3970323144511378</td></tr>
+<tr><td>TB2</td><td>330.1201050440338</td></tr>
+<tr><td>PB2</td><td>138227.43188544194</td></tr>
+<tr><td>roB2</td><td>1.458949864515005</td></tr>
+</table>
+<h2>С2-С2</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>TC2*</td><td>350.42298123800015</td></tr>
+<tr><td>PC2*</td><td>159445.52662500003</td></tr>
+<tr><td>kC2</td><td>1.3982323074637448</td></tr>
+<tr><td>sigmaC2</td><td>0.986222700883188</td></tr>
+<tr><td>GDF2a</td><td>0.5287821436545032</td></tr>
+<tr><td>GDF2b</td><td>0.5361691058023356</td></tr>
+<tr><td>PiC2*</td><td>1.5955878916504318</td></tr>
+<tr><td>Pi2Cr*</td><td>1.8911379894351767</td></tr>
+<tr><td>cpC2</td><td>1007.6848731782733</td></tr>
+<tr><td>TC2</td><td>307.6287142452054</td></tr>
+<tr><td>PC2</td><td>101325.0</td></tr>
+<tr><td>roC2</td><td>1.147645730516547</td></tr>
+</table>
+<h2>Основные параметры двигателя</h2>
+<table>
+<tr><th>Параметр</th><th>Значение</th></tr>
+<tr><td>P_spec</td><td>325.9474313003409</td></tr>
+<tr><td>Gair</td><td>868.1102006883774</td></tr>
+<tr><td>Gair1</td><td>137.7952699505361</td></tr>
+<tr><td>Gair2</td><td>730.3149307378413</td></tr>
+<tr><td>Ggas</td><td>137.0406600731124</td></tr>
+<tr><td>C_spec</td><td>0.03869391575818246</td></tr>
+<tr><td>EngEff</td><td>0.3329355773730674</td></tr>
+<tr><td>NB2</td><td>45938776.562335715</td></tr>
+<tr><td>NKND</td><td>14914933.17877111</td></tr>
+<tr><td>NKVD</td><td>69301928.75753824</td></tr>
+<tr><td>NTVD</td><td>69301928.75753824</td></tr>
+<tr><td>NTND</td><td>60853709.74110683</td></tr>
+<tr><td>P_diff</td><td>16.25288558538592</td></tr>
+<tr><td>Ndiff</td><td>-7.450580596923828e-09</td></tr>
+</table>
+</body></html>

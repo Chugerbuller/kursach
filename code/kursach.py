@@ -486,7 +486,7 @@ def calculate_fan_temperature(TB, LB, effB, R=287.0):
         TB2old = TB2
         piB =  math.pow((effB * LB / cpAir / TB + 1),(kAir / (kAir - 1)))
         if piB > 1.95:
-            piB = 1,7
+            piB = 1.95
         TB2 = TB * (1 + (math.pow(piB,((kAir - 1) / kAir)) - 1) / effB)
 
         iter_count += 1
@@ -576,15 +576,15 @@ def GDF_pressure(k, l, phi):
     return {"GDF_P": GDF_P}
 
 def calc_cc1_docr(TC1, T0, Pi, Phi, alpha, ksiTake, q_T, gAirBack):
-    cp = get_cpmix_ave(TC1, T0, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
-    k = get_cpmix_ave(TC1, T0, alpha, ksiTake, q_T, gAirBack)["k"]
+    cp = get_cpmix_ave(T0, TC1, alpha, ksiTake, q_T, gAirBack)["cp_mix"]
+    k = get_cpmix_ave(T0, TC1, alpha, ksiTake, q_T, gAirBack)["k"]
     cc1_docr = Phi * math.sqrt(2 * cp * TC1 * (1 - math.pow(Pi, (1 - k) / k)))
     
     return{"cc1_docr": cc1_docr}
 
 def calc_cc2_docr(TC2, T0, Pi, Phi):
-    cp = get_cp_air(TC2, T0)["cp"]
-    k = get_cp_air(TC2, T0)["k"]
+    cp = get_cp_air(T0, TC2)["cp"]
+    k = get_cp_air(T0, TC2)["k"]
     cc2_docr = Phi * math.sqrt(2 * cp * TC2 * (1 - math.pow(Pi, (1 - k) / k)))
     
     return{"cc2_docr": cc2_docr}
