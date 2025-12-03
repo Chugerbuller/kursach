@@ -912,3 +912,63 @@ def calculate_eta_p(pi_t_star, eta_t_star, pi_c_star, phi_c1, k_prime):#норм
     denominator = 1 - math.pow((pi_t_star * pi_c_star), exponent)
 
     return (part1 + part2) / denominator
+
+def calc_u_cp(u_i,Dcp_i,D_i):
+    return u_i * Dcp_i / D_i
+def calc_sigma_p(material_density, ucp_i, d_rel_vt, f_rel):
+    term1 = 2 * material_density * (ucp_i ** 2)
+    
+    term2 = (1 - d_rel_vt) / (1 + d_rel_vt)
+    
+    term3 = 1 - (1/3) * (1 - f_rel) * (1 + 1 / (1 + d_rel_vt))
+    
+    return term1 * term2 * term3
+def select_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
+    """
+        z — подобранное число ступеней
+        y — итоговый параметр Парсона
+    """
+
+    c0 = math.sqrt(LTBD / effTBD * 2)   # теоретическая скорость истечения
+    z = 1                                         # начальное число ступеней
+    deltaD = Dcp_tvd - Dcp_g
+    stepD = 0# разница по диаметрам
+    y = ucp_tvd / c0                                 # начальный параметр Парсона
+
+    iter_count = 0
+    opt = True
+
+    while opt and iter_count < 100:
+
+        # корректируем число ступеней по диапазону
+        if (y >= 0.75) and ((z - 1) > 0):
+            z -= 1
+        if y <= 0.45:
+            z += 1
+
+        y = 0
+        stepD = deltaD / z
+
+        # расчёт по ступеням
+        for i in range(1, z + 1):
+            u_cp_z =u_k1 * (Dcp_g + stepD * i) / D_vkvd
+            y += math.pow(u_cp_z / c0, 2)
+
+        # извлекаем корень
+        y = math.sqrt(y)
+
+        # проверяем — подобрано?
+        if (y > 0.45) and (y < 0.75):
+            opt = False
+
+        iter_count += 1
+
+    return {"z": z, "y": y}
+def check_sigma(sigma_p, sigma_b):
+        lower_bound = (1.5 + 2.2) / 2 * sigma_b
+        res = sigma_p <= lower_bound
+        if res:
+            print(f"Допустимое значение σ_пр для ротора с σ_б={sigma_b} выполнено: σ_пр={sigma_p}")
+        else:
+            print(f"[ОШИБКА] Допустимое значение σ_пр для ротора с σ_б={sigma_b} НЕ выполнено: σ_пр={sigma_p}")
+        return res

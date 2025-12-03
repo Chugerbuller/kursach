@@ -36,6 +36,14 @@ MLPT = 0.4 # 0.325
 dB = (0.30 + 0.65) / 2
 dHPC = (0.50 + 0.65) / 2
 
+fBlade = (0.25 + 0.35) / 2
+uB1 = (380 + 490) / 2
+uK1 = (450 + 500) / 2
+mu = (1.2 + 1.8) / 2
+blade_knd_density = 4450 #BT-6
+blade_kvd_density = 8063 #INCONEL 718
+blade_tnd_density = 8080 #UDIMET710
+blade_tvd_density = 8400 #ЖС6У
 DcpDivHvyhHighPressure = (6.0 + 20.0) / 2
 DcpDivHvyhOther = 3.0
 F1           = (0.25 + 0.35) / 2
@@ -45,7 +53,7 @@ ro0          = P0 / (287.0 * T0)
 
 var_calc_B = 2  # 0-вт,1-ср,2-корпус
 var_calc_rzd = 0
-var_calc_knd = 1
+var_calc_knd = 0
 var_calc_vkvd = 1
 var_calc_K = 1
 var_calc_G = 0
@@ -88,7 +96,7 @@ P0 = 101325.0
 
 
 def main():
-    
+#region Сечения
 #Сечение ВХ-ВХ
     print("BX-ВX:")
     TBXfull = T0
@@ -368,69 +376,9 @@ def main():
     print("\tP diff = ",P_diff)
     Ndiff = (NKND + NB2 - NTND)
     print("\tN diff = ",Ndiff)
-    
-# Построение второго графика на правой оси
-    temp = [1 * 2,2 * 2,3 * 2,5 * 2,10 * 2,3 * 2,4 * 2,7 * 2,3 * 2]
-    x = formArray(temp)
-    labels = ['Н',"ВХ","В","КНД","К","Г","ТВД","ТНД","С1"]
-    
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8*2.5, 6*2.5))
-    first_axes = axes[0]
-    first_axes.set_xticks(x)
-    first_axes.set_xticklabels(labels, rotation=0, ha='center')
-    y1 = [T0,TBXfull,TBfull,TKNDfull,TKfull,TGfull,TTVDfull,TTNDfull,TC1full]
-    y2 = [T0,TBX,TB,TKND,TK,TG,TTVD,TTND,TC1]
-    first_axes.plot(x, y1, label='Полная', color='red')
-    first_axes.legend(loc='best')
-    first_axes.set_ylabel('Температуры')
-    first_axes.tick_params(axis='y', labelcolor='b')
-    first_axes.set_ylim(200,1800)
-    right_ax = first_axes.twinx()
-    right_ax.plot(x, y2, label='Статика', color='red', linestyle='-.')
-    lines1, labels1 = first_axes.get_legend_handles_labels()
-    lines2, labels2 = right_ax.get_legend_handles_labels()
+#endregion Cечения
 
-    first_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
-
-    right_ax.set_ylim(200,1800)
-    for x_i in x:
-        plt.axvline(x=x_i,color='black', linestyle='--')
-        
-    second_axes = axes[1]
-    y1 = [P0,PBXfull,PBfull,PKNDfull,PKfull,PGfull,PTVDfull,PTNDfull,PC1full]
-    y2 = [P0,PBX,PB,PKND,PK,PG,PTVD,PTND,PC1]
-    second_axes.set_xticks(x)
-    second_axes.set_xticklabels(labels, rotation=0, ha='center')
-    second_axes.plot(x, y1,label = 'Полная',color ='blue')
-    second_axes.set_ylabel('Давления')
-    second_axes.tick_params(axis='y', labelcolor='b')
-    second_axes.set_ylim(20*1000,3750*1000)
-    right_ax_sec = second_axes.twinx()
-    right_ax_sec.plot(x, y2, label = 'Статика',color = 'blue',linestyle='-.')
-    right_ax_sec.set_ylim(20*1000,3750*1000)
-    
-    lines1, labels1 = second_axes.get_legend_handles_labels()
-    lines2, labels2 = right_ax_sec.get_legend_handles_labels()
-
-    second_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
-    for x_i in x:
-        plt.axvline(x=x_i, color='black', linestyle='--')
-        
-    thir_axes = axes[2]
-    y2 = [0,cBX,cB,cKND,cK,cG,cTVD,cTND,cc1]
-    thir_axes.set_xticks(x)
-    thir_axes.set_xticklabels(labels, rotation=0, ha='center')
-    thir_axes.plot(x, y2, 'black')
-    thir_axes.set_ylabel('Скорости')
-    thir_axes.tick_params(axis='y', labelcolor='b')
-    second_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
-    for x_i in x:
-        thir_axes.axvline(x=x_i, color='black', linestyle='--')
-    plt.tight_layout() # Автоматически корректирует расположение
-
-    # 4. Отображение графика
-    plt.savefig('../diagrams/sections.png', dpi=300, bbox_inches='tight')
-
+#region Геометрия
     #Геометрия
     # Исходные параметры (заполни нужными значениями)
     F_BX = Gair / (cBX * roBX)
@@ -646,6 +594,110 @@ def main():
     Dvt_c2 = Dvt_vc2
     D_c2 = math.sqrt((4 * F_c2) / math.pi + Dvt_c2)
     Dcp_c2 = (D_c2 + Dvt_c2) / 2
+#endregion Геометрия
+#region Частоты ротторов и кол-во ступеней ТНД
+    ucp_B = kurs.calc_u_cp(uB1,Dcp_B,D_B)
+    ucp_KND = kurs.calc_u_cp(uB1,Dcp_knd,D_B)
+    ucp_TND = kurs.calc_u_cp(uB1,Dcp_tnd,D_B)
+    ucp_TVD = (math.pow(0.533*(1+m),0.536) + 0.6) * ucp_TND
+    ucp_vKVD = kurs.calc_u_cp(ucp_TVD,Dcp_vkvd,Dcp_tvd)
+    ucp_KVD = kurs.calc_u_cp(ucp_TVD,Dcp_K,Dcp_tvd)
+    ucp_G = kurs.calc_u_cp(ucp_TVD,Dcp_g,Dcp_tvd)
+    ucp_TVD = kurs.calc_u_cp(ucp_TVD,Dcp_tvd,Dcp_tvd)
+    uk1_check = 450 < (ucp_TVD * D_vkvd / Dcp_tvd) < 500
+    if uk1_check:
+        print(f"Окружная скорость на среднем диаметре входа в компрессор в норме [{ucp_vKVD}]")
+    else:
+        print(f"[ОШИБКА] Окружная скорость на среднем диаметре входа в компрессор не в норме [{ucp_vKVD}]")
+    sigma_B_KND = 600 * 10 ** 6
+    sigma_B_KVD = 724 * 10 ** 6
+    sigma_B_TVD = 380 * 10 ** 6
+    sigma_B_TND = 475 * 10 ** 6
+    sigma_p_KND = kurs.calc_sigma_p(blade_knd_density, ucp_KND, Dvt_knd / D_knd, fBlade)
+    sigma_p_KVD = kurs.calc_sigma_p(blade_kvd_density, ucp_KVD, Dvt_K / D_K, fBlade)
+    sigma_p_TVD = kurs.calc_sigma_p(blade_tvd_density, ucp_TVD, Dvt_tvd / D_tvd, fBlade)
+    sigma_p_TND = kurs.calc_sigma_p(blade_tnd_density, ucp_TND, Dvt_tnd / D_tnd, fBlade)
+    kurs.check_sigma(sigma_p_KND, sigma_B_KND)
+    kurs.check_sigma(sigma_p_KVD, sigma_B_KVD)
+    kurs.check_sigma(sigma_p_TVD, sigma_B_TVD)   
+    kurs.check_sigma(sigma_p_TND, sigma_B_TND)
+    n_VD = ucp_TVD / (math.pi * Dcp_tvd) * 60 #min
+    n_ND = ucp_TND / (math.pi * Dcp_tnd) * 60 #min
+    turbine_res = kurs.select_stages(LTVD,effkHptFull,Dcp_tvd,Dcp_g,ucp_TVD,uK1,D_vkvd)
+    stages_TVD = turbine_res["z"]
+    y = turbine_res["y"]
+    print(f"Количество ступеней ТВД: {stages_TVD}, с запасом {y*100}%")
+    turbine_res_ND = kurs.select_stages(LTND,effkLptFull,Dcp_tnd,Dcp_tvd,ucp_TND,uB1,D_vknd)
+    stages_TND = turbine_res_ND["z"]
+    y_ND = turbine_res_ND["y"]
+    print(f"Количество ступеней ТНД: {stages_TND}, с запасом {y_ND*100}%")
+
+#endregion Частоты ротторов и кол-во ступеней ТНД
+
+#region График сечений
+# Построение второго графика на правой оси
+    temp = [1 * 2,2 * 2,3 * 2,5 * 2,10 * 2,3 * 2,4 * 2,7 * 2,3 * 2]
+    x = formArray(temp)
+    labels = ['Н',"ВХ","В","КНД","К","Г","ТВД","ТНД","С1"]
+    
+    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8*2.5, 6*2.5))
+    first_axes = axes[0]
+    first_axes.set_xticks(x)
+    first_axes.set_xticklabels(labels, rotation=0, ha='center')
+    y1 = [T0,TBXfull,TBfull,TKNDfull,TKfull,TGfull,TTVDfull,TTNDfull,TC1full]
+    y2 = [T0,TBX,TB,TKND,TK,TG,TTVD,TTND,TC1]
+    first_axes.plot(x, y1, label='Полная', color='red')
+    first_axes.legend(loc='best')
+    first_axes.set_ylabel('Температуры')
+    first_axes.tick_params(axis='y', labelcolor='b')
+    first_axes.set_ylim(200,1800)
+    right_ax = first_axes.twinx()
+    right_ax.plot(x, y2, label='Статика', color='red', linestyle='-.')
+    lines1, labels1 = first_axes.get_legend_handles_labels()
+    lines2, labels2 = right_ax.get_legend_handles_labels()
+
+    first_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
+
+    right_ax.set_ylim(200,1800)
+    for x_i in x:
+        plt.axvline(x=x_i,color='black', linestyle='--')
+        
+    second_axes = axes[1]
+    y1 = [P0,PBXfull,PBfull,PKNDfull,PKfull,PGfull,PTVDfull,PTNDfull,PC1full]
+    y2 = [P0,PBX,PB,PKND,PK,PG,PTVD,PTND,PC1]
+    second_axes.set_xticks(x)
+    second_axes.set_xticklabels(labels, rotation=0, ha='center')
+    second_axes.plot(x, y1,label = 'Полная',color ='blue')
+    second_axes.set_ylabel('Давления')
+    second_axes.tick_params(axis='y', labelcolor='b')
+    second_axes.set_ylim(20*1000,3750*1000)
+    right_ax_sec = second_axes.twinx()
+    right_ax_sec.plot(x, y2, label = 'Статика',color = 'blue',linestyle='-.')
+    right_ax_sec.set_ylim(20*1000,3750*1000)
+    
+    lines1, labels1 = second_axes.get_legend_handles_labels()
+    lines2, labels2 = right_ax_sec.get_legend_handles_labels()
+
+    second_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
+    for x_i in x:
+        plt.axvline(x=x_i, color='black', linestyle='--')
+        
+    thir_axes = axes[2]
+    y2 = [0,cBX,cB,cKND,cK,cG,cTVD,cTND,cc1]
+    thir_axes.set_xticks(x)
+    thir_axes.set_xticklabels(labels, rotation=0, ha='center')
+    thir_axes.plot(x, y2, 'black')
+    thir_axes.set_ylabel('Скорости')
+    thir_axes.tick_params(axis='y', labelcolor='b')
+    second_axes.legend(lines1 + lines2, labels1 + labels2, loc='best')
+    for x_i in x:
+        thir_axes.axvline(x=x_i, color='black', linestyle='--')
+    plt.tight_layout() # Автоматически корректирует расположение
+
+    # 4. Отображение графика
+    plt.savefig('../diagrams/sections.png', dpi=300, bbox_inches='tight')
+#endregion График сечений
+#region График Геометрии
     figNew, axesNew = plt.subplots(nrows=1, ncols=1, figsize=(26, 13))
     first_axes_new = axesNew
     temp = [0,1,2,3,5,6,10,12,13,15,17]
@@ -665,6 +717,8 @@ def main():
     for x_i in x:
         plt.axvline(x=x_i,color='black', linestyle='--')
     plt.savefig("../diagrams/comp.png")
+#endregion График Геометрии
+#region Вывод
     generate_engine_report_html({
                 "Коэффициенты": [
             ("g_c", gC),
@@ -859,7 +913,41 @@ def main():
             ("NTND", NTND),
             ("P_diff", P_diff),
             ("Ndiff", Ndiff)
-        ]
+        ],
+        "скорости": [
+        ("ucp_B", ucp_B),
+        ("ucp_KND", ucp_KND),
+        ("ucp_TND", ucp_TND),
+        ("ucp_TVD_pre", math.pow(0.533*(1+m), 0.536) + 0.6),
+        ("ucp_vKVD", ucp_vKVD),
+        ("ucp_KVD", ucp_KVD),
+        ("ucp_G", ucp_G),
+        ("ucp_TVD", ucp_TVD),
+        ("uk1_check", uk1_check),
+        ("n_VD", n_VD),
+        ("n_ND", n_ND),
+    ],
+
+    "прочность": [
+        (" σб KND", sigma_B_KND),
+        (" σб KVD", sigma_B_KVD),
+        (" σб TVD", sigma_B_TVD),
+        (" σб TND", sigma_B_TND),
+        ("σp KND", sigma_p_KND),
+        ("σp KVD", sigma_p_KVD),
+        ("σp TVD", sigma_p_TVD),
+        ("σp TND", sigma_p_TND),
+    ],
+
+    "Ступени ТВД": [
+        ("Кол-во ступеней", stages_TVD),
+        ("параметр Парсонса", y),
+    ],
+
+    "Ступени ТНД": [
+        ("Кол-во ступеней", stages_TND),
+        ("параметр Парсонса", y_ND),
+    ],
             
 },"../calcs/sections_report.html", "../calcs/sections_report.pdf")
     def printGeometry():
@@ -1171,8 +1259,8 @@ def main():
             print("[WARN] PDF не был создан:", e)
     printGeometry()
     save_geometry_html("../calcs/geometry_report.html", "../calcs/geometry.pdf")
-    
-    
+#endregion Вывод
+
 
 def formArray(arr):
     res = []
