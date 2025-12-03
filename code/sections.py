@@ -11,9 +11,9 @@ gC           =  0.86
 sigmaBX      = 0.99
 sigmaCC      = 0.955
 sigma1       = 0.99
-sigma2       = 0.935
+sigma2       = 0.955
 phiC1        = 0.99
-phiC2        = 0.99
+phiC2        = 0.97
 effkGas      = 0.995
 effkCompFull = 0.81
 effkLpcFull = 0.87
@@ -21,8 +21,8 @@ effkFanFull  = 0.92
 aCoeff       = 0.03
 effkHptFull  = 0.91
 effkLptFull  = 0.92
-ksiTake      = 0.1
-gAirBack     = 0.07
+ksiTake      = 0.02
+gAirBack     = 0.014
 z = 0.5
 
 cB   = 220.0
@@ -32,7 +32,7 @@ cB2  = cB - 17.5
 cK = 155.0
 cG   = 155.0 # 135
 MHPT = 0.5 # 0.6
-MLPT = 0.5 # 0.325
+MLPT = 0.4 # 0.325
 dB = (0.30 + 0.65) / 2
 dHPC = (0.50 + 0.65) / 2
 
@@ -299,7 +299,7 @@ def main():
 
 #Сечение В2-В2
     print("В2-В2:")
-    PB2full = PBfull * 1.7
+    PB2full = PBfull * PiBstar
     print("\tPB2* =", PB2full)
     cpB2 = kurs.get_cp_real(TB2full)["cp"]
     kB2 = kurs.get_cp_real(TB2full)["k"]
@@ -692,8 +692,8 @@ def main():
             ("cB2", 204.0),        # cB - 16
             ("cK", 145.0),
             ("cG", 155.0),
-            ("MHPT", 0.5),
-            ("MLPT", 0.4),
+            ("MHPT", MHPT),
+            ("MLPT", MLPT),
             ("dB", 0.475),          # (0.30 + 0.65)/2
             ("dHPC", 0.575)         # (0.50 + 0.65)/2
         ],
