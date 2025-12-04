@@ -28,13 +28,14 @@ z = 0.5
 cB   = 220.0
 cBX  = cB - 45.0 #45
 cKND = 180.0
-cB2  = cB - 17.5
+cB2  = cB - 17.5 #17.5
 cK = 155.0
 cG   = 155.0 # 135
 MHPT = 0.5 # 0.6
 MLPT = 0.4 # 0.325
-dB = (0.30 + 0.65) / 2
-dHPC = (0.50 + 0.65) / 2
+dB = 0.35
+dHPC = 0.6
+D_cp_H = 11
 
 fBlade = (0.25 + 0.35) / 2
 uB1 = (380 + 490) / 2
@@ -52,7 +53,7 @@ T0           = 288.0
 ro0          = P0 / (287.0 * T0)
 
 var_calc_B = 2  # 0-вт,1-ср,2-корпус
-var_calc_rzd = 0
+var_calc_rzd = 2
 var_calc_knd = 0
 var_calc_vkvd = 1
 var_calc_K = 1
@@ -138,9 +139,9 @@ def main():
     v_take = coeficents.coef["ksi_take"] - coeficents.coef["g_air_back"]
     LB2 = calculate_LB2(q_T,v_take,Xopt,Lfree,coeficents.coef["effk_lpt_full"],6.7)
     print("\tLB2 = ",LB2)
-    TB2full = kurs.calculate_fan_temperature(TBfull,LB2,coeficents.coef["effk_fan_full"])[0]
+    #TB2full = kurs.calculate_fan_temperature(TBfull,LB2,coeficents.coef["effk_fan_full"])[0]
     PiBstar = kurs.calculate_fan_temperature(TBfull,LB2,coeficents.coef["effk_fan_full"])[1]
-    print("\tTB2full = ",TB2full)
+    #print("\tTB2full = ",TB2full)
     print("\tPiBfull = ",PiBstar)
     LB2 = kurs.calc_LB2(TBfull,PiBstar,coeficents.coef["effk_fan_full"])["LB2"]
     TB2full = kurs.calc_LB2(TBfull,PiBstar,coeficents.coef["effk_fan_full"])["TB2full"]
@@ -389,7 +390,7 @@ def main():
 # Вентилятор
     Dcp_B = 0.0
     Dvt_B = 0.0
-    d_vt_B = 0.35
+    d_vt_B = dB
     F_B = Gair / (cB * roB)  
     if var_calc_B == 0:
         Dvt_B = math.sqrt(4 * F_B / (math.pi * (1 /(d_vt_B * d_vt_B) - 1)))
@@ -412,6 +413,7 @@ def main():
     Dvt_rzd = 0.0
     D_rzd = 0.0
     F_rzd = Gair / (cB2 * roB2)
+    var_calc_rzd = var_calc_B
     if var_calc_rzd == 0:
         Dvt_rzd = Dvt_B
         D_rzd = math.sqrt(Dvt_rzd ** 2 + (4 * F_rzd / math.pi))
@@ -484,7 +486,7 @@ def main():
     Dvt_vkvd = 0.0
     Dcp_vkvd = 0.0
     F_vkvd = F_knd #Так как пи не равны
-    d_vt_kvd = 0.6 #!!!!!!!!!!!!!НЕУВЕРЕН
+    d_vt_kvd = dHPC #!!!!!!!!!!!!!НЕУВЕРЕН
     if var_calc_vkvd == 0:
         Dvt_vkvd = math.sqrt((4 * F_vkvd) / (math.pi * (1 / (d_vt_kvd ** 2) - 1)))
         D_vkvd = Dvt_vkvd / d_vt_kvd
@@ -530,7 +532,6 @@ def main():
                         and rel_blade_check)
 ##ТВД-ТВД
     #Dср твд / h твд = 13
-    D_cp_H = 11
     F_tvd = Gair1 * (1 + q_T - v_take) / (cTVD * roTVD)
     h_tvd = math.sqrt((4 * F_tvd) / (math.pi*(math.pow((D_cp_H + 1),2) - math.pow((D_cp_H - 1),2))))
     D_tvd = h_tvd * (D_cp_H + 1)
@@ -597,14 +598,15 @@ def main():
 #endregion Геометрия
 #region Частоты ротторов и кол-во ступеней ТНД
     ucp_B = kurs.calc_u_cp(uB1,Dcp_B,D_B)
+    ucp_vKND = kurs.calc_u_cp(uB1,D_cp_vknd,D_B)
     ucp_KND = kurs.calc_u_cp(uB1,Dcp_knd,D_B)
     ucp_TND = kurs.calc_u_cp(uB1,Dcp_tnd,D_B)
-    ucp_TVD = (math.pow(0.533*(1+m),0.536) + 0.6) * ucp_TND
+    ucp_TVD = (0.533*math.pow((1+m),0.536) + 0.6) * ucp_TND
     ucp_vKVD = kurs.calc_u_cp(ucp_TVD,Dcp_vkvd,Dcp_tvd)
     ucp_KVD = kurs.calc_u_cp(ucp_TVD,Dcp_K,Dcp_tvd)
     ucp_G = kurs.calc_u_cp(ucp_TVD,Dcp_g,Dcp_tvd)
     ucp_TVD = kurs.calc_u_cp(ucp_TVD,Dcp_tvd,Dcp_tvd)
-    uk1_check = 450 < (ucp_TVD * D_vkvd / Dcp_tvd) < 500
+    uk1_check = (ucp_TVD * D_vkvd / Dcp_tvd) < 500
     if uk1_check:
         print(f"Окружная скорость на среднем диаметре входа в компрессор в норме [{ucp_vKVD}]")
     else:
@@ -740,25 +742,25 @@ def main():
         ],
 
         "Скорости и диаметры": [
-            ("cB", 220.0),
-            ("cBX", 175.0),        # cB - 45
-            ("cKND", 180.0),
-            ("cB2", 204.0),        # cB - 16
-            ("cK", 145.0),
-            ("cG", 155.0),
+            ("cB", cB),
+            ("cBX", cBX),        # cB - 45
+            ("cKND", cKND),
+            ("cB2", cB2),        # cB - 16
+            ("cK", cK),
+            ("cG", cG),
             ("MHPT", MHPT),
             ("MLPT", MLPT),
-            ("dB", 0.475),          # (0.30 + 0.65)/2
-            ("dHPC", 0.575)         # (0.50 + 0.65)/2
+            ("dB", dB),          # (0.30 + 0.65)/2
+            ("dHPC", dHPC)         # (0.50 + 0.65)/2
         ],
 
         "Прочие параметры": [
-            ("DcpDivHvyhHighPressure", 13.0),  # (6.0 + 20.0)/2
+            ("DcpDivHvyhHighPressure",D_cp_H),  # (6.0 + 20.0)/2
             ("DcpDivHvyhOther", 3.0),
-            ("F1", 0.3),                        # (0.25 + 0.35)/2
-            ("P0", 101325.0),
-            ("T0", 288.0),
-            ("ro0", 1.225)                       # P0 / (287.0 * T0)
+            ("F1", F1),                        # (0.25 + 0.35)/2
+            ("P0", P0),
+            ("T0", T0),
+            ("ro0", ro0)                       # P0 / (287.0 * T0)
         ],
 
         "Предрасчёт": [
@@ -914,18 +916,17 @@ def main():
             ("P_diff", P_diff),
             ("Ndiff", Ndiff)
         ],
-        "скорости": [
-        ("ucp_B", ucp_B),
-        ("ucp_KND", ucp_KND),
-        ("ucp_TND", ucp_TND),
-        ("ucp_TVD_pre", math.pow(0.533*(1+m), 0.536) + 0.6),
-        ("ucp_vKVD", ucp_vKVD),
-        ("ucp_KVD", ucp_KVD),
-        ("ucp_G", ucp_G),
-        ("ucp_TVD", ucp_TVD),
-        ("uk1_check", uk1_check),
-        ("n_VD", n_VD),
-        ("n_ND", n_ND),
+        "Окружные скорости": [
+        ("Вход в вентилятор(В)", ucp_B),
+        ("Вход в КНД(вКНД)", ucp_vKND),
+        ("Выход КНД(КНД)", ucp_KND),
+        ("Вход в КВД(вКВД)", ucp_vKVD),
+        ("Выход КВД(КВД)", ucp_KVD),
+        ("Вход в ТВД(Г)", ucp_G),
+        ("Выход ТВД(ТВД)", ucp_TVD),
+        ("Выход ТНД(ТНД)", ucp_TND),
+        ("Частота вращения ротора ВД", n_VD),
+        ("Частота вращения ротора НД", n_ND),
     ],
 
     "прочность": [

@@ -930,6 +930,7 @@ def select_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
     """
 
     c0 = math.sqrt(LTBD / effTBD * 2)   # теоретическая скорость истечения
+    print(f"L - {LTBD:.4f}\nc0 - {c0:.4f}")
     z = 1                                         # начальное число ступеней
     deltaD = Dcp_tvd - Dcp_g
     stepD = 0# разница по диаметрам
