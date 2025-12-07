@@ -52,9 +52,9 @@ P0           = 101325.0
 T0           = 288.0
 ro0          = P0 / (287.0 * T0)
 
-var_calc_B = 2  # 0-вт,1-ср,2-корпус
-var_calc_rzd = 2
-var_calc_knd = 0
+var_calc_B = 0 # 0-вт,1-ср,2-корпус
+var_calc_rzd = 0
+var_calc_knd = 1
 var_calc_vkvd = 1
 var_calc_K = 1
 var_calc_G = 0
@@ -625,14 +625,16 @@ def main():
     kurs.check_sigma(sigma_p_TND, sigma_B_TND)
     n_VD = ucp_TVD / (math.pi * Dcp_tvd) * 60 #min
     n_ND = ucp_TND / (math.pi * Dcp_tnd) * 60 #min
-    turbine_res = kurs.select_stages(LTVD,effkHptFull,Dcp_tvd,Dcp_g,ucp_TVD,uK1,D_vkvd)
+    turbine_res = kurs.calc_stages(LTVD,effkHptFull,Dcp_tvd,Dcp_g,ucp_TVD,uK1,D_vkvd)
     stages_TVD = turbine_res["z"]
     y = turbine_res["y"]
-    print(f"Количество ступеней ТВД: {stages_TVD}, с запасом {y*100}%")
-    turbine_res_ND = kurs.select_stages(LTND,effkLptFull,Dcp_tnd,Dcp_tvd,ucp_TND,uB1,D_vknd)
+    mu_tvd =  turbine_res["mu"]
+    print(f"Количество ступеней ТВД: {stages_TVD}, с запасом {y*100}%, коэф нагрузки {mu_tvd}")
+    turbine_res_ND = kurs.calc_stages(LTND,effkLptFull,Dcp_tnd,Dcp_tvd,ucp_TND,uB1,D_vknd)
     stages_TND = turbine_res_ND["z"]
     y_ND = turbine_res_ND["y"]
-    print(f"Количество ступеней ТНД: {stages_TND}, с запасом {y_ND*100}%")
+    mu_tnd =  turbine_res_ND["mu"]
+    print(f"Количество ступеней ТНД: {stages_TND}, с запасом {y_ND*100}%, коэф нагрузки {mu_tnd}")
 
 #endregion Частоты ротторов и кол-во ступеней ТНД
 
@@ -707,10 +709,10 @@ def main():
     labels = ['Вх','В',"Рзд","КНДв","КНДвых","КВДвх","КВДвых","Г","ТВД","ТНД","С1"]
     first_axes_new.set_xticks(x)
     first_axes_new.set_xticklabels(labels, rotation=0, ha='center')
-    Dvt = [0,Dvt_B,Dvt_rzd,D_vt_vknd,Dvt_knd,Dvt_vkvd,Dvt_K,Dvt_g,Dvt_tvd,Dvt_tnd,0]
-    Dcp = [D_BX / 2,Dcp_B,Dcp_rzd,D_cp_vknd,Dcp_knd,Dcp_vkvd,Dcp_K,Dcp_g,Dcp_tvd,Dcp_tnd,D_c1 / 2]
-    D = [D_BX,D_B,D_rzd,D_vknd,D_knd,D_vkvd,D_K,D_g,D_tvd,D_tnd,D_c1]
-    y_soplo_second = [D_BX,D_B,D_B,D_B,D_B,D_vc2,D_c2,D_c2,D_c2,D_c2,D_c2]
+    Dvt = [0,Dvt_B / 2 ,Dvt_rzd / 2,D_vt_vknd / 2,Dvt_knd / 2,Dvt_vkvd / 2,Dvt_K / 2,Dvt_g / 2,Dvt_tvd / 2,Dvt_tnd / 2,0]
+    Dcp = [D_BX / 4,Dcp_B / 2,Dcp_rzd / 2,D_cp_vknd / 2,Dcp_knd / 2,Dcp_vkvd / 2,Dcp_K / 2,Dcp_g / 2,Dcp_tvd / 2,Dcp_tnd / 2,D_c1 / 4]
+    D = [D_BX / 2,D_B / 2,D_rzd / 2,D_vknd / 2,D_knd / 2,D_vkvd / 2,D_K / 2,D_g / 2,D_tvd / 2,D_tnd / 2,D_c1 / 2]
+    y_soplo_second = [D_BX / 2,D_B / 2,D_B / 2,D_B / 2,D_B / 2,D_vc2 / 2,D_c2 / 2,D_c2 / 2,D_c2 / 2,D_c2 / 2,D_c2 / 4]
     first_axes_new.plot(x, Dvt, label='Втулка', color='black')
     first_axes_new.plot(x, Dcp, label='Средняя', color='orange', linestyle='-.')
     first_axes_new.plot(x, D, label='Корпус', color='black')

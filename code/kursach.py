@@ -928,7 +928,7 @@ def select_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
         z — подобранное число ступеней
         y — итоговый параметр Парсона
     """
-
+    mu = 1.2
     c0 = math.sqrt(LTBD / effTBD * 2)   # теоретическая скорость истечения
     print(f"L - {LTBD:.4f}\nc0 - {c0:.4f}")
     z = 1                                         # начальное число ступеней
@@ -937,17 +937,15 @@ def select_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
     y = ucp_tvd / c0                                 # начальный параметр Парсона
 
     iter_count = 0
-    opt = True
+    opt = False
 
-    while opt and iter_count < 100:
+    while opt and iter_count < 10000:
 
         # корректируем число ступеней по диапазону
-        if (y >= 0.75) and ((z - 1) > 0):
+        if (y >= 0.6) and ((z - 1) > 0):
             z -= 1
         if y <= 0.45:
             z += 1
-
-        y = 0
         stepD = deltaD / z
 
         # расчёт по ступеням
@@ -957,14 +955,37 @@ def select_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
 
         # извлекаем корень
         y = math.sqrt(y)
-
+        mu = LTBD / z / (u_cp_z * u_cp_z)
         # проверяем — подобрано?
-        if (y > 0.45) and (y < 0.75):
+        if (mu >= 1.2) and mu <= 1.8:
+            opt = True 
+        y = math.sqrt(effTBD/2/mu)
+        if (y > 0.5) and (y < 0.6):
             opt = False
-
+        else:
+            opt = True
+        
         iter_count += 1
 
-    return {"z": z, "y": y}
+    return {"z": z, "y": y, "mu": mu}
+def calc_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
+    c0 = math.sqrt(LTBD / effTBD * 2)   # теоретическая скорость истечения
+    print(f"L - {LTBD:.4f}\nc0 - {c0:.4f}")
+    z = 1                                         # начальное число ступеней
+    y = ucp_tvd / c0                                 # начальный параметр Парсона
+    mu = 0.0
+    iter_count = 0
+    opt = True
+    while opt and iter_count < 10000:
+        mu = LTBD / (z * (ucp_tvd ** 2)) 
+        y = math.sqrt(effTBD / 2 /mu)
+        if  1.2 <= mu <= 1.8 and 0.45 <= y <= 0.75:
+            opt = False
+        else:
+            z+=1
+        iter_count += 1
+
+    return {"z": z, "y": y, "mu": mu}
 def check_sigma(sigma_p, sigma_b):
         lower_bound = (1.5 + 2.2) / 2 * sigma_b
         res = sigma_p <= lower_bound
