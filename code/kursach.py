@@ -979,7 +979,7 @@ def calc_stages(LTBD, effTBD, Dcp_tvd, Dcp_g, ucp_tvd,u_k1, D_vkvd):
     while opt and iter_count < 10000:
         mu = LTBD / (z * (ucp_tvd ** 2)) 
         y = math.sqrt(effTBD / 2 /mu)
-        if  1.2 <= mu <= 1.8 and 0.45 <= y <= 0.75:
+        if  1.2 <= mu <= 2.2 and 0.45 <= y <= 0.75:
             opt = False
         else:
             z+=1
